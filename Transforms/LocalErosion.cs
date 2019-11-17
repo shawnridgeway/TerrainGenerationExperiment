@@ -11,7 +11,7 @@ using System.Linq;
 // 3: Points included which may be effected by 2s (values fed to compute)
 //
 
-public class LocalErosion : TerrainTransform {
+public class LocalErosion { // TerrainTransform {
     private readonly TerrainTransform a;
     private readonly LocalErosionOptions options;
 
@@ -41,7 +41,10 @@ public class LocalErosion : TerrainTransform {
     }
 
     public IEnumerable<float> Process(IEnumerable<Point> points) {
-        return Evaluate(points);
+        float[] values = Evaluate(points);
+        foreach (float value in values) {
+            yield return value;
+        }
     }
 
     public TerrainInformation GetTerrainInformation() {
@@ -49,7 +52,7 @@ public class LocalErosion : TerrainTransform {
         return new TerrainInformation(aInfo.min, aInfo.max);
     }
 
-    IEnumerable<float> Evaluate(IEnumerable<Point> points) {
+    float[] Evaluate(IEnumerable<Point> points) {
         // Check cache?
 
         // Get all points necessary for errosion, including border points
@@ -95,12 +98,13 @@ public class LocalErosion : TerrainTransform {
         ComputeShader erosionCompute = options.erosionCompute;
         int numThreads = Mathf.Max(countOfPointsAffected / 512, 1);
 
+        try {
         float[] valuesArray = previousValues.ToArray();
         ComputeBuffer mapBuffer = new ComputeBuffer(valuesArray.Length, sizeof(float));
         mapBuffer.SetData(valuesArray);
         erosionCompute.SetBuffer(0, "map", mapBuffer);
 
-        ComputeBuffer neighborsBuffer = new ComputeBuffer(neighborsArray.Length, sizeof(float));
+        ComputeBuffer neighborsBuffer = new ComputeBuffer(neighborsArray.Length, sizeof(int));
         neighborsBuffer.SetData(neighborsArray);
         erosionCompute.SetBuffer(0, "neighbors", neighborsBuffer);
 
@@ -108,9 +112,10 @@ public class LocalErosion : TerrainTransform {
         randomIndexBuffer.SetData(randomIndices);
         erosionCompute.SetBuffer(0, "randomIndices", randomIndexBuffer);
 
-        ComputeBuffer brushWeightBuffer = new ComputeBuffer(brushWeights.Count, sizeof(int));
+        ComputeBuffer brushWeightBuffer = new ComputeBuffer(brushWeights.Count, sizeof(float));
         brushWeightBuffer.SetData(brushWeights);
         erosionCompute.SetBuffer(0, "brushWeights", brushWeightBuffer);
+
 
         erosionCompute.SetInt("erosionRadius", options.erosionRadius);
         erosionCompute.SetInt("maxLifetime", options.maxDropletLifetime);
@@ -132,19 +137,23 @@ public class LocalErosion : TerrainTransform {
 
         // Release buffers
         mapBuffer.Release();
+        neighborsBuffer.Release();
         randomIndexBuffer.Release();
         brushWeightBuffer.Release();
 
         // Update cache?
 
         // Return result
-        for (int i = 0; i < countOfPointsToReturn; i++) {
-            yield return valuesArray[i];
+        return valuesArray;
+        } catch (System.Exception error) {
+            return new float[0];
         }
     }
 
     void ExpandPoints(Dictionary<Point, int> pointIndexPairs, List<Point> points, int borderSize) {
-        foreach (Point point in points) {
+        int initialCount = points.Count;
+        for (int i = 0; i < initialCount; i++) {
+            Point point = points.ElementAt(i);
             // Optimization, dont get border points if all neighbors are in set
             IEnumerable<Point> neighbors = point.GetNeighbors();
             bool allNeighborsInSet = true;
@@ -160,8 +169,10 @@ public class LocalErosion : TerrainTransform {
 
     void IncludePoints(Dictionary<Point, int> pointIndexPairs, List<Point> points, IEnumerable<Point> pointsToAdd) {
         foreach (Point pointToAdd in pointsToAdd) {
-            pointIndexPairs.Add(pointToAdd, points.Count);
-            points.Add(pointToAdd);
+            if (!pointIndexPairs.ContainsKey(pointToAdd)) {
+                pointIndexPairs.Add(pointToAdd, points.Count);
+                points.Add(pointToAdd);
+            }
         }
     }
 }

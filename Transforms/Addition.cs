@@ -12,16 +12,13 @@ public class Addition : TerrainTransform {
         this.b = b;
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
-        IEnumerable<float> aValues = a.Process(points);
-        IEnumerable<float> bValues = b.Process(points);
-        IEnumerable<(float, float)> operands = aValues.Zip(bValues, (aValue, bValue) => (aValue, bValue));
-        foreach ((float, float) pair in operands) {
-            yield return pair.Item1 + pair.Item2;
-        }
+    protected override float Evaluate(Point point) {
+        float aValue = a.Process(point);
+        float bValue = b.Process(point);
+        return aValue + bValue;
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         TerrainInformation aInfo = a.GetTerrainInformation();
         TerrainInformation bInfo = b.GetTerrainInformation();
         return new TerrainInformation(aInfo.min + bInfo.min, aInfo.max + bInfo.max);

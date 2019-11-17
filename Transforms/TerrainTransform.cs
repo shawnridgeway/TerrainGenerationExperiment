@@ -2,9 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface TerrainTransform {
-    IEnumerable<float> Process(IEnumerable<Point> locations);
-    TerrainInformation GetTerrainInformation();
+public abstract class TerrainTransform {
+    public float Process(Point point) {
+        return Evaluate(point);
+    }
+
+    public IEnumerable<float> Process(IEnumerable<Point> points) {
+        foreach (Point point in points) {
+            yield return Evaluate(point);
+        }
+    }
+
+    public abstract TerrainInformation GetTerrainInformation();
+    protected abstract float Evaluate(Point point);
 }
 
 public struct TerrainInformation {

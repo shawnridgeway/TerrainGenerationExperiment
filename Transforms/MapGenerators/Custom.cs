@@ -9,15 +9,13 @@ public class Custom : TerrainTransform {
         this.options = options;
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
-        foreach (Point point in points) {
-            int x = Mathf.RoundToInt(point.GetLocation().x);
-            int z = Mathf.RoundToInt(point.GetLocation().z);
-            yield return options.image.GetPixel(x, z).grayscale;
-        }
+    protected override float Evaluate(Point point) {
+        int x = Mathf.RoundToInt(point.GetLocation().x);
+        int z = Mathf.RoundToInt(point.GetLocation().z);
+        return options.image.GetPixel(x, z).grayscale;
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         return new TerrainInformation(0, 1);
     }
 }

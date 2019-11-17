@@ -9,13 +9,11 @@ public class Constant : TerrainTransform {
         this.options = options;
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
-        foreach (Point point in points) {
-            yield return options.constant;
-        }
+    protected override float Evaluate(Point point) {
+        return options.constant;
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         return new TerrainInformation(options.constant, options.constant);
     }
 }

@@ -3,5 +3,5 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public interface MeshGenerator {
-	GameObject Process(Chunk chunk, int levelOfDetail);
+	Mesh Process(Chunk chunk, int levelOfDetail);
 }

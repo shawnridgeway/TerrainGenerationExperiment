@@ -17,6 +17,22 @@ float gravity;
 float startSpeed;
 float startWater;
 
+int GetE(int index) {
+  return neighbors[index];
+}
+
+int GetN(int index) {
+  return neighbors[index + 1];
+}
+
+int GetW(int index) {
+  return neighbors[index + 2];
+}
+
+int GetS(int index) {
+  return neighbors[index + 3];
+}
+
 // Returns float3(gradientX, gradientY, height)
 float3 CalculateHeightAndGradient (int NWNode, int NENode, int SWNode, int SENode, float deltaX, float deltaY) {
     // Calculate heights of the four nodes of the droplet's cell
@@ -156,20 +172,4 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
         speed = sqrt (max(0,speed * speed + deltaHeight * gravity));
         water *= (1 - evaporateSpeed);
     }
-}
-
-int GetE(int index) {
-  return neighbors[index];
-}
-
-int GetN(int index) {
-  return neighbors[index + 1];
-}
-
-int GetW(int index) {
-  return neighbors[index + 2];
-}
-
-int GetS(int index) {
-  return neighbors[index + 3];
 }

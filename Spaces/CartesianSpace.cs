@@ -30,7 +30,12 @@ public class CartesianSpace : ChunkedSpace {
     }
 
     private readonly int chunkSize = 240; // Width, not point count
-    private readonly int cardinality = 2;
+    private readonly int cardinality = 2; // Number of dimensions
+    private readonly float scale; // Distance between points
+
+    public CartesianSpace(float scale = 1) {
+        this.scale = scale;
+    }
 
     public Chunk[] GetChunksWithin(Vector3 origin, float distance) {
         Chunk closestChunk = GetClosestChunk(origin);
@@ -67,15 +72,15 @@ public class CartesianSpace : ChunkedSpace {
 
     Chunk GetClosestChunk(Vector3 origin) {
         Vector3 closestChunkCenter = new Vector3(
-            Mathf.Round(origin.x / chunkSize) * chunkSize,
+            Mathf.Round(origin.x / chunkSize / scale) * chunkSize * scale,
             0,
-            Mathf.Round(origin.z / chunkSize) * chunkSize
+            Mathf.Round(origin.z / chunkSize / scale) * chunkSize * scale
         );
-        return new CartesianChunk(closestChunkCenter, chunkSize);
+        return new CartesianChunk(closestChunkCenter, scale, chunkSize);
     }
 
     bool IsChunkInRange(Vector3 origin, Chunk chunk, float distance) {
-        Bounds bounds = new Bounds(chunk.GetCenterLocation(), new Vector3(chunkSize, chunkSize, chunkSize));
+        Bounds bounds = new Bounds(chunk.GetCenterLocation(), new Vector3(chunkSize * scale, chunkSize * scale, chunkSize * scale));
         return bounds.SqrDistance(origin) <= distance * distance;
     }
 }
@@ -83,10 +88,12 @@ public class CartesianSpace : ChunkedSpace {
 
 public class CartesianChunk : Chunk {
     private readonly Vector3 centerLoaction;
+    private readonly float scale;
     private readonly int chunkSize;
 
-    public CartesianChunk(Vector3 centerLoaction, int chunkSize) {
+    public CartesianChunk(Vector3 centerLoaction, float scale, int chunkSize) {
         this.centerLoaction = centerLoaction;
+        this.scale = scale;
         this.chunkSize = chunkSize;
     }
 
@@ -96,11 +103,11 @@ public class CartesianChunk : Chunk {
 
     public IEnumerable<Point> GetPoints(int interval = 1, int borderSize = 0) {
         int pointCount = chunkSize + 1;
-        int start = -pointCount / 2 - (borderSize * interval);
-        int end = pointCount / 2 + (borderSize * interval);
-        for (int x = start; x <= end; x += interval) {
-            for (int y = start; y <= end; y += interval) {
-                yield return new CartesianPoint(new Vector3(x, 0, y) + centerLoaction);
+        float start = (-pointCount / 2 - (borderSize * interval));
+        float end = (pointCount / 2 + (borderSize * interval));
+        for (float x = start; x <= end; x += interval) {
+            for (float y = start; y <= end; y += interval) {
+                yield return new CartesianPoint(new Vector3(x, 0, y) * scale + centerLoaction, scale);
             }
         }
     }
@@ -116,7 +123,8 @@ public class CartesianChunk : Chunk {
         float xOffset = direction == CartesianSpace.Direction.E ? 1 : direction == CartesianSpace.Direction.W ? -1 : 0;
         float zOffset = direction == CartesianSpace.Direction.N ? 1 : direction == CartesianSpace.Direction.S ? -1 : 0;
         return new CartesianChunk(
-            new Vector3(centerLoaction.x + xOffset * chunkSize, 0, centerLoaction.z + zOffset * chunkSize),
+            new Vector3(centerLoaction.x + xOffset * chunkSize * scale, 0, centerLoaction.z + zOffset * chunkSize * scale),
+            scale,
             chunkSize
         );
     }
@@ -140,9 +148,11 @@ public class CartesianChunk : Chunk {
 
 public class CartesianPoint : Point {
     private readonly Vector3 location;
+    private readonly float scale;
 
-    public CartesianPoint(Vector3 location) {
+    public CartesianPoint(Vector3 location, float scale) {
         this.location = location;
+        this.scale = scale;
     }
 
     public Vector3 GetLocation() {
@@ -159,13 +169,16 @@ public class CartesianPoint : Point {
     public Point GetNeighbor(CartesianSpace.Direction direction) {
         float xOffset = direction == CartesianSpace.Direction.E ? 1 : direction == CartesianSpace.Direction.W ? -1 : 0;
         float zOffset = direction == CartesianSpace.Direction.N ? 1 : direction == CartesianSpace.Direction.S ? -1 : 0;
-        return new CartesianPoint(new Vector3(location.x + xOffset, 0, location.z + zOffset));
+        return new CartesianPoint(
+            new Vector3(location.x + xOffset * scale, 0, location.z + zOffset * scale),
+            scale
+        );
     }
 
     public IEnumerable<Point> GetBorderPoints(int borderSize) {
-        for (int x = -borderSize; x <= borderSize; x++) {
-            for (int y = -borderSize; y <= borderSize; y++) {
-                yield return new CartesianPoint(new Vector3(x, 0, y) + location);
+        for (float x = -borderSize; x <= borderSize; x += scale) {
+            for (float y = -borderSize; y <= borderSize; y += scale) {
+                yield return new CartesianPoint(new Vector3(x, 0, y) + location, scale);
             }
         }
     }

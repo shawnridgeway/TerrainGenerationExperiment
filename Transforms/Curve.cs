@@ -11,17 +11,25 @@ public class Curve : TerrainTransform {
 		this.options = options;
 	}
 
-	public IEnumerable<float> Process(IEnumerable<Point> points) {
+    protected override float Evaluate(Point point) {
         // Get a separate clone so that there are no threading issues
         AnimationCurve animationCurveClone = new AnimationCurve(options.curve.keys);
-        IEnumerable<float> aValues = a.Process(points);
+        float aValue = a.Process(point);
         TerrainInformation aInfo = a.GetTerrainInformation();
-		foreach (float value in aValues) {
-			yield return Mathf.Lerp(aInfo.min, aInfo.max, animationCurveClone.Evaluate(Mathf.InverseLerp(aInfo.min, aInfo.max, value)));
-		}
+		return Mathf.Lerp(
+            aInfo.min,
+            aInfo.max,
+            animationCurveClone.Evaluate(
+                Mathf.InverseLerp(
+                    aInfo.min,
+                    aInfo.max,
+                    aValue
+                )
+            )
+        );
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         // Get a separate clone so that there are no threading issues
         AnimationCurve animationCurveClone = new AnimationCurve(options.curve.keys);
         TerrainInformation aInfo = a.GetTerrainInformation();

@@ -4,30 +4,15 @@ using UnityEngine;
 using System.Linq;
 
 public class CartesianMeshGenerator : MeshGenerator {
-    private readonly float worldScale;
     private readonly float altitudeScale;
     private readonly TerrainTransform terrainTransform;
-    private readonly Material material;
 
-    public CartesianMeshGenerator(float worldScale, float altitudeScale, TerrainTransform terrainTransform, Material material) {
-        this.worldScale = worldScale;
-        this.altitudeScale = altitudeScale;
+    public CartesianMeshGenerator(TerrainTransform terrainTransform, float altitudeScale) {
         this.terrainTransform = terrainTransform;
-        this.material = material;
+        this.altitudeScale = altitudeScale;
     }
 
-    public GameObject Process(Chunk chunk, int levelOfDetail) {
-        GameObject meshObject = new GameObject("Terrain Chunk");
-        MeshRenderer meshRenderer = meshObject.AddComponent<MeshRenderer>();
-        MeshFilter meshFilter = meshObject.AddComponent<MeshFilter>();
-        //MeshCollider meshCollider = meshObject.AddComponent<MeshCollider>();
-        meshObject.transform.position = chunk.GetCenterLocation() * worldScale;
-        meshRenderer.material = material;
-        meshFilter.mesh = GenerateCartesianTerrainMesh(chunk, levelOfDetail);
-        return meshObject;
-    }
-
-    Mesh GenerateCartesianTerrainMesh(Chunk chunk, int levelOfDetail) {
+    public Mesh Process(Chunk chunk, int levelOfDetail) {
         Vector3 chunkCenterLocation = chunk.GetCenterLocation();
         int chunkSize = chunk.GetSize();
 
@@ -54,9 +39,9 @@ public class CartesianMeshGenerator : MeshGenerator {
             (Point point, float heightValue) = processedPoint;
 
             Vector3 vertexPosition = new Vector3(
-                (point.GetLocation().x - chunkCenterLocation.x) * worldScale,
+                point.GetLocation().x - chunkCenterLocation.x,
                 heightValue * altitudeScale,
-                (point.GetLocation().z - chunkCenterLocation.z) * worldScale
+                point.GetLocation().z - chunkCenterLocation.z
             );
 
             Vector2 uv = new Vector2(

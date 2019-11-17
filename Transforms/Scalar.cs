@@ -11,14 +11,12 @@ public class Scalar : TerrainTransform {
         this.options = options;
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
-        IEnumerable<float> aValues = a.Process(points);
-        foreach (float value in aValues) {
-            yield return value * options.scalar;
-        }
+    protected override float Evaluate(Point point) {
+        float aValue = a.Process(point);
+        return aValue * options.scalar;
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         TerrainInformation aInfo = a.GetTerrainInformation();
         return new TerrainInformation(
             Mathf.Min(aInfo.min * options.scalar, aInfo.max * options.scalar),

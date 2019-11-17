@@ -23,26 +23,22 @@ public class Noise : TerrainTransform {
         }
     }
 
-	public IEnumerable<float> Process(IEnumerable<Point> points) {
-        float amplitude;
-        float frequency;
-        foreach (Point point in points) {
-			float value = 0;
-            amplitude = 1;
-            frequency = 1;
-            for (int i = 0; i < options.octaves; i++) {
-                float sampleX = (point.GetLocation().x + octaveOffsets[i].x) / options.scale * frequency;
-                float sampleZ = (point.GetLocation().z + octaveOffsets[i].z) / options.scale * frequency;
-                float perlinValue = Mathf.PerlinNoise(sampleX, sampleZ) * 2 - 1;
-                value += perlinValue * amplitude;
-                amplitude *= options.persistance;
-                frequency *= options.lacunarity;
-            }
-            yield return value;
-		}
+    protected override float Evaluate(Point point) {
+		float value = 0;
+        float amplitude = 1;
+        float frequency = 1;
+        for (int i = 0; i < options.octaves; i++) {
+            float sampleX = (point.GetLocation().x + octaveOffsets[i].x) / options.scale * frequency;
+            float sampleZ = (point.GetLocation().z + octaveOffsets[i].z) / options.scale * frequency;
+            float perlinValue = Mathf.PerlinNoise(sampleX, sampleZ) * 2 - 1;
+            value += perlinValue * amplitude;
+            amplitude *= options.persistance;
+            frequency *= options.lacunarity;
+        }
+        return value;
     }
 
-    public TerrainInformation GetTerrainInformation() {
+    public override TerrainInformation GetTerrainInformation() {
         return new TerrainInformation(-maxPossibleValue, maxPossibleValue);
     }
 }
