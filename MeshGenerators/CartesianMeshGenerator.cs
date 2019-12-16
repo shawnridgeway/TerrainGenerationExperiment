@@ -7,7 +7,7 @@ public class CartesianMeshGenerator : MeshGenerator {
     private readonly float altitudeScale;
     private readonly TerrainTransform terrainTransform;
 
-    public CartesianMeshGenerator(TerrainTransform terrainTransform, float altitudeScale) {
+    public CartesianMeshGenerator(TerrainTransform terrainTransform, float altitudeScale = 240) {
         this.terrainTransform = terrainTransform;
         this.altitudeScale = altitudeScale;
     }

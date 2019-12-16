@@ -34,13 +34,14 @@ public class TestTerrain : MonoBehaviour {
         //    new CartesianPoint(new Vector3(1,1,1)),
         //    new CartesianPoint(new Vector3(0,0,0))
         //});
+        Voronoi voronoiModel = new Voronoi(new VoronoiOptions(7, 300, seed: 11));
         TerrainTransform voronoi = new VoronoiTesselation(new VoronoiTesselationOptions(new[]{
             new Constant(new ConstantOptions(.2f)),
             new Constant(new ConstantOptions(-.2f)),
             new Constant(new ConstantOptions(.1f)),
             new Constant(new ConstantOptions(-.1f)),
             new Constant(new ConstantOptions(0f))
-        }, 7, 300, seed: 11));
+        }, voronoiModel));
 
         CartesianMeshGenerator meshGenerator = new CartesianMeshGenerator(noise, 200);
         CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(voronoi, 200);
