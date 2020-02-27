@@ -43,8 +43,26 @@ public class TestTerrain : MonoBehaviour {
             new Constant(new ConstantOptions(0f))
         }, voronoiModel));
 
-        CartesianMeshGenerator meshGenerator = new CartesianMeshGenerator(noise, 200);
-        CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(voronoi, 200);
+        TerrainTransform gradient = new RadialGradient(
+            new RadialGradientOptions(
+                100,
+                new Vector2(0,0),
+                //Mathf.PI * 0.2f,
+                new GradientPattern(
+                    new GradientPatternOptions(
+                        new GradientPatternKey[] {
+                            new GradientPatternKey(0, 0),
+                            new GradientPatternKey(.5f, 5),
+                            new GradientPatternKey(1, 0)
+                        },
+                        GradientPatternMode.Repeat
+                    )
+                )
+            )
+        );
+
+        CartesianMeshGenerator meshGenerator = new CartesianMeshGenerator(noise, 50);
+        CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(gradient, 50);
         ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, 1);
         terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
         terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
