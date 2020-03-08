@@ -183,6 +183,10 @@ public class CartesianPoint : Point {
         }
     }
 
+    public Point MapPoint(Func<Vector3, Vector3> mapFunction) {
+        return new CartesianPoint(mapFunction(location), scale);
+    }
+
     public override int GetHashCode() {
         return location.ToString().GetHashCode();
     }

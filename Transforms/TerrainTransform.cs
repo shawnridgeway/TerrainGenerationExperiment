@@ -14,6 +14,7 @@ public abstract class TerrainTransform {
     }
 
     public abstract TerrainInformation GetTerrainInformation();
+
     protected abstract float Evaluate(Point point);
 }
 

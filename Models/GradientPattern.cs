@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 public class GradientPattern {
     private readonly GradientPatternOptions options;
@@ -17,17 +18,26 @@ public class GradientPattern {
     }
 
     public float EvaluateAtInterval(float interval) {
-        if (interval < firstKeyPosition || interval > lastKeyPosition) {
+        if (interval < firstKeyPosition || interval >= lastKeyPosition) {
             interval = HandleOutOfBoundsInterval(interval);
         }
-        GradientPatternKey leftKey = options.keys.Last(key => key.position <= interval);
-        GradientPatternKey rightKey = options.keys.First(key => key.position >= interval);
+        GradientPatternKey leftKey;
+        try {
+            leftKey = options.keys.Last(key => key.position <= interval);
+        } catch(Exception) {
+            return options.keys[0].value / 2f;
+        }
+        GradientPatternKey rightKey;
+        try {
+            rightKey = options.keys.First(key => key.position > interval);
+        } catch(Exception) {
+            return options.keys[options.keys.Length - 1].value / 2f;
+        }
         float keyIntervalLength = rightKey.position - leftKey.position;
-
         return (
-            (keyIntervalLength - (interval - leftKey.position)) * leftKey.value +
-            (keyIntervalLength - (rightKey.position - interval)) * rightKey.value
-        ) / 2;
+            Mathf.Abs((interval - leftKey.position) - keyIntervalLength) / keyIntervalLength * leftKey.value +
+            Mathf.Abs((rightKey.position - interval) - keyIntervalLength) / keyIntervalLength * rightKey.value
+        );
     }
 
     float HandleOutOfBoundsInterval(float interval) {
@@ -35,12 +45,12 @@ public class GradientPattern {
             if (interval < firstKeyPosition) {
                 return firstKeyPosition;
             }
-            if (interval > lastKeyPosition) {
+            if (interval >= lastKeyPosition) {
                 return lastKeyPosition;
             }
         }
         if (options.mode == GradientPatternMode.Repeat) {
-            return ((interval - firstKeyPosition) % gradientLength) + firstKeyPosition;
+            return MathUtils.CanonicalModulus(interval - firstKeyPosition, gradientLength) + firstKeyPosition;
         }
         return interval;
     }
@@ -53,12 +63,12 @@ public class GradientPattern {
         return options.keys.Select(key => key.value).Max();
     }
 
-    public static GradientPattern Unit() {
+    public static GradientPattern Default() {
         return new GradientPattern(
             new GradientPatternOptions(
                 new GradientPatternKey[] {
-                    new GradientPatternKey(0, 0),
-                    new GradientPatternKey(1, 1)
+                    new GradientPatternKey(0f, 0f),
+                    new GradientPatternKey(1f, 1f)
                 }
             )
         );

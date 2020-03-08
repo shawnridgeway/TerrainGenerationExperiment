@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 
 public interface Space {
@@ -23,4 +23,5 @@ public interface Point {
     Vector3 GetLocation(); // Identifier
     IEnumerable<Point> GetNeighbors();
     IEnumerable<Point> GetBorderPoints(int borderSize);
+    Point MapPoint(Func<Vector3, Vector3> mapFunction);
 }

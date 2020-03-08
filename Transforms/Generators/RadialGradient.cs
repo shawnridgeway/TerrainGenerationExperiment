@@ -39,7 +39,7 @@ public class RadialGradientOptions {
         this.position = position;
         this.gradientPattern = gradientPattern;
         if (this.gradientPattern == null) {
-            this.gradientPattern = GradientPattern.Unit();
+            this.gradientPattern = GradientPattern.Default();
         }
     }
 }

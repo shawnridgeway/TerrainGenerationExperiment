@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,19 +32,25 @@ public class VoronoiTesselation : TerrainTransform {
 
     TerrainTransform GetFillForPoint(Point point) {
         VoronoiResult voronoiResult = options.voronoiModel.EvaluateAtLocation(point.GetLocation());
-        return options.fills[voronoiResult.closestSiteIndex % options.fills.Length];
+        return options.fills[options.mapResultToFillIndex(voronoiResult)];
     }
 }
 
 public class VoronoiTesselationOptions {
     public readonly TerrainTransform[] fills;
     public readonly Voronoi voronoiModel;
+    public readonly Func<VoronoiResult, int> mapResultToFillIndex;
 
     public VoronoiTesselationOptions(
         TerrainTransform[] fills,
-        Voronoi voronoiModel
+        Voronoi voronoiModel,
+        Func<VoronoiResult, int> mapResultToFillIndex = null
     ) {
         this.fills = fills;
         this.voronoiModel = voronoiModel;
+        this.mapResultToFillIndex = mapResultToFillIndex;
+        if (this.mapResultToFillIndex == null) {
+            this.mapResultToFillIndex = (result => result.closestSiteIndex % this.fills.Length);
+        }
     }
 }

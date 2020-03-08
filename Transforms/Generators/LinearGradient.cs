@@ -32,9 +32,9 @@ public class LinearGradientOptions {
     public readonly GradientPattern gradientPattern;
 
     public LinearGradientOptions(
-        float scale = 100,
+        float scale = 100f,
         Vector2 position = new Vector2(),
-        float rotation = 0,
+        float rotation = 0f,
         GradientPattern gradientPattern = null
     ) {
         this.scale = scale;
@@ -42,7 +42,7 @@ public class LinearGradientOptions {
         this.rotation = rotation;
         this.gradientPattern = gradientPattern;
         if (this.gradientPattern == null) {
-            this.gradientPattern = GradientPattern.Unit();
+            this.gradientPattern = GradientPattern.Default();
         }
     }
 }
