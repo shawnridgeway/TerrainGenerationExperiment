@@ -66,8 +66,16 @@ public class CartesianSpace : ChunkedSpace {
         throw new System.NotImplementedException();
     }
 
+    public Point GetClosestPointTo(Vector3 origin) {
+        return new CartesianPoint(new Vector3(origin.x, 0, origin.z), scale);
+    }
+
     public int GetCardinality() {
         return cardinality;
+    }
+
+    public int GetChunkSize() {
+        return chunkSize;
     }
 
     Chunk GetClosestChunk(Vector3 origin) {

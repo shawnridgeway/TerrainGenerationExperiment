@@ -8,8 +8,8 @@ public class TerrainRenderer {
     private readonly MeshGenerator meshGenerator;
     private readonly Material material;
 
-    private readonly HashSet<Chunk> visibleChunks = new HashSet<Chunk>();
-    private readonly Dictionary<Chunk, GameObject> chunkDict = new Dictionary<Chunk, GameObject>();
+    private readonly HashSet<ViewChunk> vivibleViewChunks = new HashSet<ViewChunk>();
+    private readonly Dictionary<ViewChunk, GameObject> viewDict = new Dictionary<ViewChunk, GameObject>();
 
     public TerrainRenderer(Transform parent, Viewer viewer, MeshGenerator meshGenerator, Material material) {
         this.parent = parent;
@@ -19,45 +19,45 @@ public class TerrainRenderer {
     }
 
     public void Render() {
-        Chunk[] nowVisibleChunks = viewer.View();
-        UpdateVisible(nowVisibleChunks);
+        ViewChunk[] newView = viewer.View();
+        UpdateVisible(newView);
     }
 
-    public void UpdateVisible(Chunk[] nowVisibleChunks) {
+    public void UpdateVisible(ViewChunk[] newView) {
         // Remove no longer visible chunks
-        HashSet<Chunk> nowVisibleChunkSet = new HashSet<Chunk>(nowVisibleChunks);
-        HashSet<Chunk> noLongerVisibleChunkSet = new HashSet<Chunk>();
-        foreach (Chunk visibleChunk in visibleChunks) {
-            if (!nowVisibleChunkSet.Contains(visibleChunk)) {
-                noLongerVisibleChunkSet.Add(visibleChunk);
+        HashSet<ViewChunk> nowVisibleViewChunkSet = new HashSet<ViewChunk>(newView);
+        HashSet<ViewChunk> noLongerVisibleViewChunkSet = new HashSet<ViewChunk>();
+        foreach (ViewChunk visibleViewChunk in vivibleViewChunks) {
+            if (!nowVisibleViewChunkSet.Contains(visibleViewChunk)) {
+                noLongerVisibleViewChunkSet.Add(visibleViewChunk);
             }
         }
-        foreach (Chunk noLongerVisibleChunk in noLongerVisibleChunkSet) {
-            SetChunkVisible(noLongerVisibleChunk, false);
+        foreach (ViewChunk noLongerVisibleViewChunk in noLongerVisibleViewChunkSet) {
+            SetViewChunkVisible(noLongerVisibleViewChunk, false);
         }
 
         // Add newly visible chunks
-        foreach (Chunk nowVisibleChunk in nowVisibleChunks) {
-            if (!visibleChunks.Contains(nowVisibleChunk)) {
-                SetChunkVisible(nowVisibleChunk, true);
+        foreach (ViewChunk nowVisibleViewChunk in nowVisibleViewChunkSet) {
+            if (!vivibleViewChunks.Contains(nowVisibleViewChunk)) {
+                SetViewChunkVisible(nowVisibleViewChunk, true);
             }
         }
     }
 
-    void SetChunkVisible(Chunk chunk, bool nowVisible) {
+    void SetViewChunkVisible(ViewChunk viewChunk, bool nowVisible) {
         GameObject meshObject;
-        bool meshExists = chunkDict.TryGetValue(chunk, out meshObject);
+        bool meshExists = viewDict.TryGetValue(viewChunk, out meshObject);
         if (!meshExists) {
-            meshObject = CreateGameObject(chunk, 0, false, 4);
-            chunkDict.Add(chunk, meshObject);
+            meshObject = CreateGameObject(viewChunk.chunk, viewChunk.lod, false, 4);
+            viewDict.Add(viewChunk, meshObject);
             meshObject.transform.parent = parent;
         }
         if (nowVisible) {
             meshObject.SetActive(true);
-            visibleChunks.Add(chunk);
+            vivibleViewChunks.Add(viewChunk);
         } else {
             meshObject.SetActive(false);
-            visibleChunks.Remove(chunk);
+            vivibleViewChunks.Remove(viewChunk);
         }
     }
 
@@ -71,6 +71,7 @@ public class TerrainRenderer {
         MeshFilter meshFilter = meshObject.AddComponent<MeshFilter>();
         meshFilter.mesh = meshGenerator.Process(chunk, lod);
 
+        // TODO: optimize generating, caching, reusing collider meshes
         if (hasCollider) {
             MeshCollider meshCollider = meshObject.AddComponent<MeshCollider>();
             meshCollider.sharedMesh = meshGenerator.Process(chunk, colliderLod);

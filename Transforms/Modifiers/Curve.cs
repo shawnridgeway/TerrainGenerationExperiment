@@ -43,7 +43,10 @@ public class Curve : TerrainTransform {
 public class CurveOptions {
 	public readonly AnimationCurve curve;
 
-    public CurveOptions(AnimationCurve curve) {
+    public CurveOptions(AnimationCurve curve = null) {
 		this.curve = curve;
+        if (this.curve == null) {
+            this.curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        }
 	}
 }

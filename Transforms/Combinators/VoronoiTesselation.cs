@@ -1,17 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class VoronoiTesselation : TerrainTransform {
     private readonly VoronoiTesselationOptions options;
+    private readonly Dictionary<VoronoiRegion, TerrainTransform> dictRegionToFill = new Dictionary<VoronoiRegion, TerrainTransform>();
+    private readonly TerrainTransform transform;
 
     public VoronoiTesselation(VoronoiTesselationOptions options) {
         this.options = options;
+        int i = 0;
+        foreach (VoronoiRegion region in options.voronoiModel.GetCanonicalRegions()) {
+            dictRegionToFill.Add(region, options.fills[i]);
+            i++;
+        }
+        Vector3 scale = options.voronoiModel.GetScale();
+        Func<VoronoiRegion, Point, float> mapFunction = (region, point) => {
+            // If the closest site for a given point lies outside of the bounds,
+            // use the equivalent point whose closest site is in bounds.
+            Vector3 regionCenter = region.GetCenter();
+            if (regionCenter.x < 0) {
+                point = point.MapPoint(location => new Vector3(location.x + scale.x, location.y, location.z));
+            }
+            if (regionCenter.x >= scale.x) {
+                point = point.MapPoint(location => new Vector3(location.x - scale.x, location.y, location.z));
+            }
+            if (regionCenter.y < 0) {
+                point = point.MapPoint(location => new Vector3(location.x, location.y + scale.y, location.z));
+            }
+            if (regionCenter.y >= scale.y) {
+                point = point.MapPoint(location => new Vector3(location.x, location.y - scale.y, location.z));
+            }
+            if (regionCenter.z < 0) {
+                point = point.MapPoint(location => new Vector3(location.x, location.y, location.z + scale.z));
+            }
+            if (regionCenter.z >= scale.z) {
+                point = point.MapPoint(location => new Vector3(location.x, location.y, location.z - scale.z));
+            }
+            TerrainTransform fill = dictRegionToFill[region];
+            return fill.Process(point);
+        };
+        transform = new Modulus(
+            new SimpleVoronoi(
+                new SimpleVoronoiOptions(
+                    options.voronoiModel,
+                    mapFunction
+                )
+            ),
+            new ModulusOptions(scale * 1f)
+        );
     }
 
     protected override float Evaluate(Point point) {
-        TerrainTransform fill = GetFillForPoint(point);
-        return fill.Process(point);
+        return transform.Process(point);
     }
 
     public override TerrainInformation GetTerrainInformation() {
@@ -29,28 +71,20 @@ public class VoronoiTesselation : TerrainTransform {
         }
         return new TerrainInformation(min, max);
     }
-
-    TerrainTransform GetFillForPoint(Point point) {
-        VoronoiResult voronoiResult = options.voronoiModel.EvaluateAtLocation(point.GetLocation());
-        return options.fills[options.mapResultToFillIndex(voronoiResult)];
-    }
 }
 
 public class VoronoiTesselationOptions {
     public readonly TerrainTransform[] fills;
     public readonly Voronoi voronoiModel;
-    public readonly Func<VoronoiResult, int> mapResultToFillIndex;
 
     public VoronoiTesselationOptions(
         TerrainTransform[] fills,
-        Voronoi voronoiModel,
-        Func<VoronoiResult, int> mapResultToFillIndex = null
+        Voronoi voronoiModel
     ) {
         this.fills = fills;
         this.voronoiModel = voronoiModel;
-        this.mapResultToFillIndex = mapResultToFillIndex;
-        if (this.mapResultToFillIndex == null) {
-            this.mapResultToFillIndex = (result => result.closestSiteIndex % this.fills.Length);
+        if (fills.Length != voronoiModel.GetCount()) {
+            throw new Exception("The count of fills must be the same as the count of sites in the Voronoi model.");
         }
     }
 }

@@ -12,12 +12,12 @@ public class Modulus : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
-        Point modifiedPoint = point.MapPoint(location => new Vector3(
-            MathUtils.CanonicalModulus(location.x, options.interval),
-            MathUtils.CanonicalModulus(location.y, options.interval),
-            MathUtils.CanonicalModulus(location.z, options.interval)
+        Point cannonicalPoint = point.MapPoint(location => new Vector3(
+            MathUtils.CanonicalModulus(location.x, options.scale.x),
+            MathUtils.CanonicalModulus(location.y, options.scale.y),
+            MathUtils.CanonicalModulus(location.z, options.scale.z)
         ));
-        return a.Process(modifiedPoint);
+        return a.Process(cannonicalPoint);
     }
 
     public override TerrainInformation GetTerrainInformation() {
@@ -26,9 +26,9 @@ public class Modulus : TerrainTransform {
 }
 
 public class ModulusOptions {
-    public readonly float interval;
+    public readonly Vector3 scale;
 
-    public ModulusOptions(float interval = 1f) {
-        this.interval = interval;
+    public ModulusOptions(Vector3 scale = new Vector3()) {
+        this.scale = scale;
     }
 }

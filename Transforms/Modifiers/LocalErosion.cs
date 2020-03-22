@@ -11,7 +11,7 @@ using System.Linq;
 // 3: Points included which may be effected by 2s (values fed to compute)
 //
 
-public class LocalErosion { // TerrainTransform {
+public class LocalErosion : TerrainTransform { 
     private readonly TerrainTransform a;
     private readonly LocalErosionOptions options;
 
@@ -40,19 +40,20 @@ public class LocalErosion { // TerrainTransform {
         }
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
-        float[] values = Evaluate(points);
-        foreach (float value in values) {
-            yield return value;
-        }
+    protected override float Evaluate(Point point) {
+        // This method is not used
+        throw new System.NotImplementedException();
     }
 
-    public TerrainInformation GetTerrainInformation() {
-        TerrainInformation aInfo = a.GetTerrainInformation();
-        return new TerrainInformation(aInfo.min, aInfo.max);
+    public override IEnumerable<float> Process(IEnumerable<Point> points) {
+        return EvaluateSet(points);
     }
 
-    float[] Evaluate(IEnumerable<Point> points) {
+    public override TerrainInformation GetTerrainInformation() {
+        return a.GetTerrainInformation();
+    }
+
+    IEnumerable<float> EvaluateSet(IEnumerable<Point> points) {
         // Check cache?
 
         // Get all points necessary for errosion, including border points
@@ -99,52 +100,52 @@ public class LocalErosion { // TerrainTransform {
         int numThreads = Mathf.Max(countOfPointsAffected / 512, 1);
 
         try {
-        float[] valuesArray = previousValues.ToArray();
-        ComputeBuffer mapBuffer = new ComputeBuffer(valuesArray.Length, sizeof(float));
-        mapBuffer.SetData(valuesArray);
-        erosionCompute.SetBuffer(0, "map", mapBuffer);
+            float[] valuesArray = previousValues.ToArray();
+            ComputeBuffer mapBuffer = new ComputeBuffer(valuesArray.Length, sizeof(float));
+            mapBuffer.SetData(valuesArray);
+            erosionCompute.SetBuffer(0, "map", mapBuffer);
 
-        ComputeBuffer neighborsBuffer = new ComputeBuffer(neighborsArray.Length, sizeof(int));
-        neighborsBuffer.SetData(neighborsArray);
-        erosionCompute.SetBuffer(0, "neighbors", neighborsBuffer);
+            ComputeBuffer neighborsBuffer = new ComputeBuffer(neighborsArray.Length, sizeof(int));
+            neighborsBuffer.SetData(neighborsArray);
+            erosionCompute.SetBuffer(0, "neighbors", neighborsBuffer);
 
-        ComputeBuffer randomIndexBuffer = new ComputeBuffer(randomIndices.Length, sizeof(int));
-        randomIndexBuffer.SetData(randomIndices);
-        erosionCompute.SetBuffer(0, "randomIndices", randomIndexBuffer);
+            ComputeBuffer randomIndexBuffer = new ComputeBuffer(randomIndices.Length, sizeof(int));
+            randomIndexBuffer.SetData(randomIndices);
+            erosionCompute.SetBuffer(0, "randomIndices", randomIndexBuffer);
 
-        ComputeBuffer brushWeightBuffer = new ComputeBuffer(brushWeights.Count, sizeof(float));
-        brushWeightBuffer.SetData(brushWeights);
-        erosionCompute.SetBuffer(0, "brushWeights", brushWeightBuffer);
+            ComputeBuffer brushWeightBuffer = new ComputeBuffer(brushWeights.Count, sizeof(float));
+            brushWeightBuffer.SetData(brushWeights);
+            erosionCompute.SetBuffer(0, "brushWeights", brushWeightBuffer);
 
 
-        erosionCompute.SetInt("erosionRadius", options.erosionRadius);
-        erosionCompute.SetInt("maxLifetime", options.maxDropletLifetime);
-        erosionCompute.SetFloat("inertia", options.inertia);
-        erosionCompute.SetFloat("sedimentCapacityFactor", options.maxSedimentCapacity);
-        erosionCompute.SetFloat("minSedimentCapacity", options.minSedimentCapacity);
-        erosionCompute.SetFloat("depositSpeed", options.depositSpeed);
-        erosionCompute.SetFloat("erodeSpeed", options.erosionSpeed);
-        erosionCompute.SetFloat("evaporateSpeed", options.evaporateSpeed);
-        erosionCompute.SetFloat("gravity", options.gravity);
-        erosionCompute.SetFloat("startSpeed", options.initialSpeed);
-        erosionCompute.SetFloat("startWater", options.initialWaterVolume);
+            erosionCompute.SetInt("erosionRadius", options.erosionRadius);
+            erosionCompute.SetInt("maxLifetime", options.maxDropletLifetime);
+            erosionCompute.SetFloat("inertia", options.inertia);
+            erosionCompute.SetFloat("sedimentCapacityFactor", options.maxSedimentCapacity);
+            erosionCompute.SetFloat("minSedimentCapacity", options.minSedimentCapacity);
+            erosionCompute.SetFloat("depositSpeed", options.depositSpeed);
+            erosionCompute.SetFloat("erodeSpeed", options.erosionSpeed);
+            erosionCompute.SetFloat("evaporateSpeed", options.evaporateSpeed);
+            erosionCompute.SetFloat("gravity", options.gravity);
+            erosionCompute.SetFloat("startSpeed", options.initialSpeed);
+            erosionCompute.SetFloat("startWater", options.initialWaterVolume);
 
-        // Run compute shader
-        erosionCompute.Dispatch(0, numThreads, 1, 1);
+            // Run compute shader
+            erosionCompute.Dispatch(0, numThreads, 1, 1);
 
-        // Get results
-        mapBuffer.GetData(valuesArray);
+            // Get results
+            mapBuffer.GetData(valuesArray);
 
-        // Release buffers
-        mapBuffer.Release();
-        neighborsBuffer.Release();
-        randomIndexBuffer.Release();
-        brushWeightBuffer.Release();
+            // Release buffers
+            mapBuffer.Release();
+            neighborsBuffer.Release();
+            randomIndexBuffer.Release();
+            brushWeightBuffer.Release();
 
-        // Update cache?
+            // Update cache?
 
-        // Return result
-        return valuesArray;
+            // Return result
+            return valuesArray;
         } catch (System.Exception error) {
             return new float[0];
         }

@@ -7,7 +7,7 @@ public abstract class TerrainTransform {
         return Evaluate(point);
     }
 
-    public IEnumerable<float> Process(IEnumerable<Point> points) {
+    public virtual IEnumerable<float> Process(IEnumerable<Point> points) {
         foreach (Point point in points) {
             yield return Evaluate(point);
         }

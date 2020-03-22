@@ -5,10 +5,12 @@ using System;
 
 public interface Space {
     Point[] GetPointsWithin(Vector3 origin, float distance);
+    Point GetClosestPointTo(Vector3 origin);
     int GetCardinality();
 }
 
 public interface ChunkedSpace : Space {
+    int GetChunkSize();
     Chunk[] GetChunksWithin(Vector3 origin, float distance);
 }
 
