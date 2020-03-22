@@ -2,11 +2,15 @@
 
 An extensible, composable, declarative framework for terrain generation.
 
+## Structure
+
+```
 TerrainRenderer
 ├── Viewer
 │   └── Space
 └── MeshGenerator
     └── TerrainTransform
+```
 
 ## Example
 
