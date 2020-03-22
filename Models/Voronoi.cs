@@ -150,6 +150,7 @@ public struct VoronoiRegion {
     }
 
     private float GetDistanceFromPointToBorder(Vector3 location, Vector3 borderPoint, Vector3 borderNormal) {
+        // Source: http://geomalgorithms.com/a04-_planes.html
         float sn = -Vector3.Dot(borderNormal, location - borderPoint);
         float sd = Vector3.Dot(borderNormal, borderNormal);
         float sb = sn / sd;
