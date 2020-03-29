@@ -37,8 +37,53 @@ public class CartesianSpace : ChunkedSpace {
         this.scale = scale;
     }
 
-    public Chunk[] GetChunksWithin(Vector3 origin, float distance) {
-        Chunk closestChunk = GetClosestChunk(origin);
+    public int GetCardinality() {
+        return cardinality;
+    }
+
+    public int GetChunkSize() {
+        return chunkSize;
+    }
+
+    // Map a point in 3D space to one in CartesionSpace
+    public Point GetPointInSpace(Vector3 origin) {
+        return new CartesianPoint(new Vector3(origin.x, 0, origin.z), scale);
+    }
+
+    // Get the closest Point that falls on the grind in this space
+    public Point GetClosestPointTo(Point origin) {
+        Vector3 closestPointLocation = new Vector3(
+            Mathf.Round(origin.GetLocation().x / scale) * scale,
+            Mathf.Round(origin.GetLocation().y / scale) * scale,
+            Mathf.Round(origin.GetLocation().z / scale) * scale
+        );
+        return new CartesianPoint(closestPointLocation, scale);
+    }
+
+    // Get all of the Points that fall within the given distance from the origin
+    public Point[] GetPointsWithin(Point origin, float distance) {
+        throw new System.NotImplementedException();
+    }
+
+    // Check if the two points are within the given distance along this space
+    public bool IsPointInRange(Point origin, Point target, float distance) {
+        return Vector3.SqrMagnitude(target.GetLocation() - origin.GetLocation())
+            < distance * distance;
+    }
+
+    // Get the closest Chunk to the given origin
+    public Chunk GetClosestChunkTo(Point origin) {
+        Vector3 closestChunkCenter = new Vector3(
+            Mathf.Round(origin.GetLocation().x / chunkSize / scale) * chunkSize * scale,
+            Mathf.Round(origin.GetLocation().y / chunkSize / scale) * chunkSize * scale,
+            Mathf.Round(origin.GetLocation().z / chunkSize / scale) * chunkSize * scale
+        );
+        return new CartesianChunk(closestChunkCenter, scale, chunkSize);
+    }
+
+    // Get all of the Chunks that fall within the given distance from the origin
+    public Chunk[] GetChunksWithin(Point origin, float distance) {
+        Chunk closestChunk = GetClosestChunkTo(origin);
         HashSet<Chunk> acceptedChunks = new HashSet<Chunk>();
         HashSet<Chunk> rejectedChunks = new HashSet<Chunk>();
         Queue<Chunk> unprocessedChunks = new Queue<Chunk>();
@@ -62,34 +107,14 @@ public class CartesianSpace : ChunkedSpace {
         return chunksInRange;
     }
 
-    public Point[] GetPointsWithin(Vector3 origin, float distance) {
-        throw new System.NotImplementedException();
-    }
-
-    public Point GetClosestPointTo(Vector3 origin) {
-        return new CartesianPoint(new Vector3(origin.x, 0, origin.z), scale);
-    }
-
-    public int GetCardinality() {
-        return cardinality;
-    }
-
-    public int GetChunkSize() {
-        return chunkSize;
-    }
-
-    Chunk GetClosestChunk(Vector3 origin) {
-        Vector3 closestChunkCenter = new Vector3(
-            Mathf.Round(origin.x / chunkSize / scale) * chunkSize * scale,
-            0,
-            Mathf.Round(origin.z / chunkSize / scale) * chunkSize * scale
+    // Check if a Chunk is within the given distance of a Point along this space
+    public bool IsChunkInRange(Point origin, Chunk chunk, float distance) {
+        Bounds bounds = new Bounds(
+            chunk.GetCenterLocation(),
+            new Vector3(chunkSize * scale, chunkSize * scale, chunkSize * scale)
         );
-        return new CartesianChunk(closestChunkCenter, scale, chunkSize);
-    }
-
-    bool IsChunkInRange(Vector3 origin, Chunk chunk, float distance) {
-        Bounds bounds = new Bounds(chunk.GetCenterLocation(), new Vector3(chunkSize * scale, chunkSize * scale, chunkSize * scale));
-        return bounds.SqrDistance(origin) <= distance * distance;
+        return bounds.SqrDistance(origin.GetLocation())
+            < distance * distance;
     }
 }
 
@@ -159,8 +184,18 @@ public class CartesianPoint : Point {
     private readonly float scale;
 
     public CartesianPoint(Vector3 location, float scale) {
+        if (!DoesLocationExistInSpace(location)) {
+            throw new Exception("The location provided for a new CartesianPoint does now exist in the CartesianSpace.");
+        }
         this.location = location;
         this.scale = scale;
+    }
+
+    bool DoesLocationExistInSpace(Vector3 location) {
+        if (location.y != 0) {
+            return false;
+        }
+        return true;
     }
 
     public Vector3 GetLocation() {

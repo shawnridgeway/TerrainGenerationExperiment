@@ -4,21 +4,25 @@ using System;
 
 
 public interface Space {
-    Point[] GetPointsWithin(Vector3 origin, float distance);
-    Point GetClosestPointTo(Vector3 origin);
     int GetCardinality();
+    Point GetPointInSpace(Vector3 location);
+    Point GetClosestPointTo(Point origin);
+    Point[] GetPointsWithin(Point origin, float distance);
+    bool IsPointInRange(Point origin, Point point, float distance);
 }
 
 public interface ChunkedSpace : Space {
     int GetChunkSize();
-    Chunk[] GetChunksWithin(Vector3 origin, float distance);
+    Chunk GetClosestChunkTo(Point origin);
+    Chunk[] GetChunksWithin(Point origin, float distance);
+    bool IsChunkInRange(Point origin, Chunk chunk, float distance);
 }
 
 public interface Chunk {
+    int GetSize();
     Vector3 GetCenterLocation(); // Identifier
     IEnumerable<Point> GetPoints(int interval, int borderSize);
     IEnumerable<Chunk> GetNeighbors();
-    int GetSize();
 }
 
 public interface Point {

@@ -5,49 +5,64 @@ using System.Collections.Generic;
 public class FalloffViewer : Viewer {
     private readonly ChunkedSpace space;
     private readonly Transform observer;
-    private readonly SortedList<MeshLod, float> visiblityLodPlanes; // TODO: extract into struct, add validation on raising values
+    private readonly SortedList<MeshLod, float> visibilityLodPlanes; // TODO: extract into struct, add validation on raising values
     private readonly SortedList<MeshLod, float> collisionLodPlanes; // TODO: extract into struct, add validation on raising values
-    private readonly float updateDistaceSqr; // Distance traveled from previousObserverPosition before next update.
-    private Vector3 previousObserverPosition;
+    private readonly float updateDistace; // Distance traveled from previousObserverPosition before next update.
+    private Point previousObserverPoint;
     private ViewChunk[] view = null;
 
     public FalloffViewer(
         ChunkedSpace space,
         Transform observer,
-        SortedList<MeshLod, float> visiblityLodPlanes = null,
+        SortedList<MeshLod, float> visibilityLodPlanes = null,
         SortedList<MeshLod, float> collisionLodPlanes = null
     ) {
         this.space = space;
         this.observer = observer;
-        this.visiblityLodPlanes = visiblityLodPlanes ?? GetDefaultLodPlanes();
+        this.visibilityLodPlanes = visibilityLodPlanes ?? GetDefaultVisibilityLodPlanes();
         this.collisionLodPlanes = collisionLodPlanes ?? GetDefaultCollisionLodPlanes();
-        this.updateDistaceSqr = space.GetChunkSize() * space.GetChunkSize() / (10f * 10f);
+        this.updateDistace = space.GetChunkSize() / 10f;
     }
 
     public ViewChunk[] View() {
-        Vector3 observerPosition = space.GetClosestPointTo(observer.position).GetLocation();
-        if ((previousObserverPosition - observerPosition).sqrMagnitude > updateDistaceSqr || view == null) {
-            previousObserverPosition = observerPosition;
-            view = GetVisible(observerPosition);
+        Point observerPoint = space.GetPointInSpace(observer.position);
+        if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
+            previousObserverPoint = observerPoint;
+            view = GetVisible(observerPoint);
         }
         return view;
     }
 
-    private ViewChunk[] GetVisible(Vector3 observerPosition) {
-        float furthestVisiblePlane = visiblityLodPlanes.Last().Value;
+    private ViewChunk[] GetVisible(Point observerPoint) {
+        float furthestVisiblePlane = visibilityLodPlanes.Last().Value;
         float furthestCollisionPlane = collisionLodPlanes.Last().Value;
         float furthestPlane = Mathf.Max(furthestVisiblePlane, furthestCollisionPlane);
-        Chunk[] chunks = space.GetChunksWithin(observerPosition, furthestPlane);
+        Chunk[] chunks = space.GetChunksWithin(observerPoint, furthestPlane);
         return chunks
             .Select(chunk => {
-                MeshLod lod = GetMaxLod(visiblityLodPlanes, chunk.GetCenterLocation());
-                MeshLod colliderLod = GetMaxLod(collisionLodPlanes, chunk.GetCenterLocation());
+                MeshLod lod = GetMaxLod(visibilityLodPlanes, chunk);
+                MeshLod colliderLod = GetMaxLod(collisionLodPlanes, chunk);
                 return new ViewChunk(chunk, lod, colliderLod);
             })
             .ToArray();
     }
 
-    private SortedList<MeshLod, float> GetDefaultLodPlanes() {
+    private MeshLod GetMaxLod(SortedList<MeshLod, float> lodPlanes, Chunk chunk) {
+        MeshLod maxLod = lodPlanes.First().Key;
+        Point closestPoint = space.GetPointInSpace(observer.position);
+        foreach (var entry in lodPlanes) {
+            MeshLod meshLod = entry.Key;
+            float distanceThreshold = entry.Value;
+            if (!space.IsChunkInRange(closestPoint, chunk, distanceThreshold)) {
+                maxLod = meshLod;
+            } else {
+                break;
+            }
+        }
+        return maxLod;
+    }
+
+    private SortedList<MeshLod, float> GetDefaultVisibilityLodPlanes() {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
         defaultLodPlanes.Add(new MeshLod(0), 20);
         defaultLodPlanes.Add(new MeshLod(2), 100);
@@ -60,20 +75,5 @@ public class FalloffViewer : Viewer {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
         defaultLodPlanes.Add(new MeshLod(2), 30);
         return defaultLodPlanes;
-    }
-
-    private MeshLod GetMaxLod(SortedList<MeshLod, float> lodPlanes, Vector3 chunkCenter) {
-        MeshLod maxLod = lodPlanes.First().Key;
-        float distance = Vector3.Distance(observer.position, chunkCenter);
-        foreach (var entry in lodPlanes) {
-            MeshLod meshLod = entry.Key;
-            float distanceThreshold = entry.Value;
-            if (distance > distanceThreshold) {
-                maxLod = meshLod;
-            } else {
-                break;
-            }
-        }
-        return maxLod;
     }
 }

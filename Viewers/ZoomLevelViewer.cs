@@ -5,36 +5,36 @@ public class ZoomLevelViewer : Viewer {
     private readonly ChunkedSpace space;
     private readonly Transform observer;
     private readonly float ratio;
-    private readonly float updateDistaceSqr; // Distance traveled from previousObserverPosition before next update.
-    private Vector3 previousObserverPosition;
+    private readonly float updateDistace; // Distance traveled from previousObserverPosition before next update.
+    private Point previousObserverPoint;
     private ViewChunk[] view = null;
 
     public ZoomLevelViewer(ChunkedSpace space, Transform observer, float ratio = 1) {
         this.space = space;
         this.observer = observer;
         this.ratio = ratio; // TODO: use this
-        this.updateDistaceSqr = space.GetChunkSize() * space.GetChunkSize() / (10f * 10f);
+        this.updateDistace = space.GetChunkSize() / 10f;
     }
 
     public ViewChunk[] View() {
-        Vector3 observerPosition = observer.position;
-        if ((previousObserverPosition - observerPosition).sqrMagnitude > updateDistaceSqr || view == null) {
-            previousObserverPosition = observerPosition;
-            UpdateVisible(observerPosition);
+        Point observerPoint = space.GetPointInSpace(observer.position);
+        if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
+            previousObserverPoint = observerPoint;
+            view = GetVisible(observerPoint);
         }
         return view;
     }
 
-    private void UpdateVisible(Vector3 observerPosition) {
-        Vector3 closestPointToObserver = space.GetClosestPointTo(observerPosition).GetLocation();
-        float observerToClosestPointDistance = Vector3.Distance(
-            observerPosition,
-            closestPointToObserver
+    private ViewChunk[] GetVisible(Point observerPoint) {
+        Vector3 pointOnGround = observerPoint.GetLocation();
+        float distanceFromObserverToGround = Vector3.Distance(
+            observer.position,
+            pointOnGround
         );
-        float clipRadius = ratio * observerToClosestPointDistance;
+        float clipRadius = ratio * distanceFromObserverToGround;
         MeshLod lod = GetLod(space.GetChunkSize(), clipRadius);
-        view = space
-            .GetChunksWithin(closestPointToObserver, clipRadius)
+        return space
+            .GetChunksWithin(observerPoint, clipRadius)
             .Select(chunk => new ViewChunk(chunk, lod))
             .ToArray();
     }

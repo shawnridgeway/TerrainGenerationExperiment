@@ -7,8 +7,8 @@ public class ClipPlaneViewer : Viewer {
     private readonly float clipDistace;
     private readonly MeshLod lod;
     private readonly MeshLod? colliderLod;
-    private readonly float updateDistaceSqr; // Distance traveled from previousObserverPosition before next update.
-    private Vector3 previousObserverPosition;
+    private readonly float updateDistace; // Distance traveled from previousObserverPosition before next update.
+    private Point previousObserverPoint;
     private ViewChunk[] view = null;
 
     public ClipPlaneViewer(
@@ -23,21 +23,21 @@ public class ClipPlaneViewer : Viewer {
         this.clipDistace = clipDistace;
         this.lod = lod ?? new MeshLod(0);
         this.colliderLod = colliderLod;
-        this.updateDistaceSqr = space.GetChunkSize() * space.GetChunkSize() / (10f * 10f);
+        this.updateDistace = space.GetChunkSize() / 10f;
     }
 
     public ViewChunk[] View() {
-        Vector3 observerPosition = space.GetClosestPointTo(observer.position).GetLocation();
-        if ((previousObserverPosition - observerPosition).sqrMagnitude > updateDistaceSqr || view == null) {
-            previousObserverPosition = observerPosition;
-            UpdateVisible(observerPosition);
+        Point observerPoint = space.GetPointInSpace(observer.position);
+        if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
+            previousObserverPoint = observerPoint;
+            view = GetVisible(observerPoint);
         }
         return view;
     }
 
-    private void UpdateVisible(Vector3 observerPosition) {
-        view = space
-            .GetChunksWithin(observerPosition, clipDistace)
+    private ViewChunk[] GetVisible(Point observerPoint) {
+        return space
+            .GetChunksWithin(observerPoint, clipDistace)
             .Select(chunk => new ViewChunk(chunk, lod, colliderLod))
             .ToArray();
     }
