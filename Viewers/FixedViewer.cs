@@ -4,10 +4,10 @@ using UnityEngine;
 public class FixedViewer : Viewer {
     private readonly ViewChunk[] view;
 
-    public FixedViewer(ChunkedSpace space, Vector3 origin, float distace, int lod = 0) {
+    public FixedViewer(ChunkedSpace space, Vector3 origin, float distace, MeshLod? lod = null) {
         Chunk[] chunks = space.GetChunksWithin(space.GetClosestPointTo(origin).GetLocation(), distace);
         view = chunks
-            .Select(chunk => new ViewChunk(chunk, lod))
+            .Select(chunk => new ViewChunk(chunk, lod ?? new MeshLod(0)))
             .ToArray();
     }
 

@@ -1,14 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class TestTerrain : MonoBehaviour {
     public Material material;
     public Transform observer;
-    public AnimationCurve animationCurve;
-    public Texture2D image;
+    //public AnimationCurve animationCurve;
+    //public Texture2D image;
     TerrainRenderer terrainRenderer;
-    TerrainRenderer terrainRenderer2;
+    //TerrainRenderer terrainRenderer2;
 
     void Start() {
         ChunkedSpace space = new CartesianSpace();
@@ -89,19 +87,19 @@ public class TestTerrain : MonoBehaviour {
             )
         );
         TerrainTransform m = new Curve(
-                    new InverseLerp(
-                        new SimpleVoronoi(
-                            new SimpleVoronoiOptions(
-                                voronoiModel,
-                                (VoronoiRegion region, Point point) => {
-                                    return region.GetDistanceToClosestBorder(point.GetLocation());
-                                }
-                            )
-                        ),
-                        new InverseLerpOptions(0, 50)
-                    ),
-                    new CurveOptions(null)
-                );
+            new InverseLerp(
+                new SimpleVoronoi(
+                    new SimpleVoronoiOptions(
+                        voronoiModel,
+                        (VoronoiRegion region, Point point) => {
+                            return region.GetDistanceToClosestBorder(point.GetLocation());
+                        }
+                    )
+                ),
+                new InverseLerpOptions(0, 50)
+            ),
+            new CurveOptions(null)
+        );
         //TerrainTransform voro = new SimpleVoronoi(
         //    new SimpleVoronoiOptions(
         //        voronoiModel,
@@ -124,11 +122,12 @@ public class TestTerrain : MonoBehaviour {
         //}));
         //TerrainTransform testTerr = new LocalErosion(new Scalar(noise, new ScalarOptions(5f)), new LocalErosionOptions());
 
-        CartesianMeshGenerator meshGenerator = new CartesianMeshGenerator(mask, 20);
+        MeshGenerator meshGenerator = new CartesianMeshGenerator(mask, 20);
         //CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(scaledNoise, 20);
-        //ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, 1);
-        ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
-        terrainRenderer = new TerrainRenderer(transform, zoomViewer, meshGenerator, material);
+        //ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 50, lod: new MeshLod(1), colliderLod: new MeshLod(3));
+        Viewer viewer = new FalloffViewer(space, observer);
+        //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
+        terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
     }
 

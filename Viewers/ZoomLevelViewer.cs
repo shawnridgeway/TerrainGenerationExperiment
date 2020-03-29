@@ -12,7 +12,7 @@ public class ZoomLevelViewer : Viewer {
     public ZoomLevelViewer(ChunkedSpace space, Transform observer, float ratio = 1) {
         this.space = space;
         this.observer = observer;
-        this.ratio = ratio;
+        this.ratio = ratio; // TODO: use this
         this.updateDistaceSqr = space.GetChunkSize() * space.GetChunkSize() / (10f * 10f);
     }
 
@@ -32,32 +32,32 @@ public class ZoomLevelViewer : Viewer {
             closestPointToObserver
         );
         float clipRadius = ratio * observerToClosestPointDistance;
-        int lod = GetLod(space.GetChunkSize(), clipRadius);
+        MeshLod lod = GetLod(space.GetChunkSize(), clipRadius);
         view = space
             .GetChunksWithin(closestPointToObserver, clipRadius)
             .Select(chunk => new ViewChunk(chunk, lod))
             .ToArray();
     }
 
-    private int GetLod(int chunkSize, float clipRadius) {
+    private MeshLod GetLod(int chunkSize, float clipRadius) {
         if (clipRadius < chunkSize * 0.5) {
-            return 0;
+            return new MeshLod(0);
         }
         if (clipRadius < chunkSize) {
-            return 1;
+            return new MeshLod(1);
         }
         if (clipRadius < chunkSize * 1.5) {
-            return 2;
+            return new MeshLod(2);
         }
         if (clipRadius < chunkSize * 2) {
-            return 3;
+            return new MeshLod(3);
         }
         if (clipRadius < chunkSize * 2.5) {
-            return 4;
+            return new MeshLod(4);
         }
         if (clipRadius < chunkSize * 3) {
-            return 5;
+            return new MeshLod(5);
         }
-        return 6;
+        return new MeshLod(6);
     }
 }

@@ -12,13 +12,13 @@ public class CartesianMeshGenerator : MeshGenerator {
         this.altitudeScale = altitudeScale;
     }
 
-    public Mesh Process(Chunk chunk, int levelOfDetail) {
+    protected override MeshData GetMeshData(Chunk chunk, MeshLod meshLod) {
         Vector3 chunkCenterLocation = chunk.GetCenterLocation();
         int chunkSize = chunk.GetSize();
 
         int originalVerticiesPerLine = chunkSize + 1; // +1 for verticies, not squares
         // The number of points to skip for each mesh vertex
-        int vertexInterval = levelOfDetail == 0 ? 1 : levelOfDetail * 2; // 1,2,4,6,8,10,12
+        int vertexInterval = meshLod == 0 ? 1 : meshLod * 2; // 1,2,4,6,8,10,12
         int verticiesPerLine = ((originalVerticiesPerLine - 1) / vertexInterval) + 1; // 240, 120, 60, 40, 30, 24, 20
         int verticiesPerLineWithBorder = verticiesPerLine + 2;
         
@@ -29,7 +29,7 @@ public class CartesianMeshGenerator : MeshGenerator {
         IEnumerable<(Point, float)> processedPoints = terrainTransform.Process(borderedChunkPoints)
             .Zip(borderedChunkPoints, (heightValue, point) => (point, heightValue));
 
-        MeshBuilder meshBuilder = new MeshBuilder(verticiesPerLineWithBorder, (int index) => index < verticiesPerLineWithBorder || // First row
+        MeshBuilder meshDataBuilder = new MeshBuilder(verticiesPerLineWithBorder, (int index) => index < verticiesPerLineWithBorder || // First row
                 index >= (verticiesPerLineWithBorder - 1) * verticiesPerLineWithBorder || // Last row
                 index % verticiesPerLineWithBorder == 0 || // First column
                 index % verticiesPerLineWithBorder == verticiesPerLineWithBorder - 1 // Last column
@@ -49,9 +49,9 @@ public class CartesianMeshGenerator : MeshGenerator {
                 (float)0.5 - ((point.GetLocation().z - chunkCenterLocation.z) / chunkSize)
             );
 
-            meshBuilder.AddVertexAt(vertexPosition, uv);
+            meshDataBuilder.AddVertexAt(vertexPosition, uv);
         }
 
-        return meshBuilder.Build();
+        return meshDataBuilder.Build();
     }
 }

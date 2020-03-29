@@ -1,6 +1,6 @@
 ﻿# Terrain Generation
 
-An extensible, composable, declarative framework for terrain generation.
+An extensible, composable, declarative framework for terrain generation in Unity.
 
 ## Structure
 
@@ -14,7 +14,7 @@ TerrainRenderer
 
 ## Example
 
-```
+```cs
 using UnityEngine;
 
 public class TestTerrain : MonoBehaviour {
@@ -35,7 +35,6 @@ public class TestTerrain : MonoBehaviour {
         terrainRenderer.Render();
     }
 }
-
 ```
 
 ## Components

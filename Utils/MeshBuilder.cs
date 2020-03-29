@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-class MeshBuilder {
+public class MeshBuilder {
     readonly int verticiesPerLineWithBorder;
     readonly Func<int, bool> isBorderVertex;
     readonly Vector3[] verticiesWithBorder;
@@ -102,15 +102,15 @@ class MeshBuilder {
         return vertexIndexWithBorder - verticiesPerLineWithBorder - 1 - ((rowNumberWithBorder - 1) * 2);
     }
 
-    public Mesh Build() {
+    public MeshData Build() {
         normalsWithBorder = GetNormals();
         (Vector3[] vertices, int[] triangles, Vector2[] uvs, Vector3[] normals) = Trim();
-        Mesh mesh = new Mesh {
+        MeshData meshData = new MeshData {
             vertices = vertices,
             triangles = triangles,
-            uv = uvs,
+            uvs = uvs,
             normals = normals
         };
-        return mesh;
+        return meshData;
     }
 }
