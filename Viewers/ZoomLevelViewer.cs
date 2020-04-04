@@ -32,10 +32,10 @@ public class ZoomLevelViewer : Viewer {
             pointOnGround
         );
         float clipRadius = ratio * distanceFromObserverToGround;
-        MeshLod lod = GetLod(space.GetChunkSize(), clipRadius);
+        MeshLod visibleLod = GetLod(space.GetChunkSize(), clipRadius);
         return space
             .GetChunksWithin(observerPoint, clipRadius)
-            .Select(chunk => new ViewChunk(chunk, lod))
+            .Select(chunk => new ViewChunk(chunk, visibleLod))
             .ToArray();
     }
 

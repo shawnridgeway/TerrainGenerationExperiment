@@ -64,7 +64,7 @@ public class FalloffViewer : Viewer {
 
     private SortedList<MeshLod, float> GetDefaultVisibilityLodPlanes() {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
-        defaultLodPlanes.Add(new MeshLod(0), 20);
+        defaultLodPlanes.Add(new MeshLod(0), 30);
         defaultLodPlanes.Add(new MeshLod(2), 100);
         defaultLodPlanes.Add(new MeshLod(4), 200);
         defaultLodPlanes.Add(new MeshLod(6), 300);
@@ -73,7 +73,7 @@ public class FalloffViewer : Viewer {
 
     private SortedList<MeshLod, float> GetDefaultCollisionLodPlanes() {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
-        defaultLodPlanes.Add(new MeshLod(2), 30);
+        defaultLodPlanes.Add(new MeshLod(3), 30);
         return defaultLodPlanes;
     }
 }

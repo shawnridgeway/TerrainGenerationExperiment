@@ -5,8 +5,8 @@ public class ClipPlaneViewer : Viewer {
     private readonly ChunkedSpace space;
     private readonly Transform observer;
     private readonly float clipDistace;
-    private readonly MeshLod lod;
-    private readonly MeshLod? colliderLod;
+    private readonly MeshLod visibleLod;
+    private readonly MeshLod? tangibleLod;
     private readonly float updateDistace; // Distance traveled from previousObserverPosition before next update.
     private Point previousObserverPoint;
     private ViewChunk[] view = null;
@@ -15,14 +15,14 @@ public class ClipPlaneViewer : Viewer {
         ChunkedSpace space,
         Transform observer,
         float clipDistace,
-        MeshLod? lod = null,
-        MeshLod? colliderLod = null
+        MeshLod? visibleLod = null,
+        MeshLod? tangibleLod = null
     ) {
         this.space = space;
         this.observer = observer;
         this.clipDistace = clipDistace;
-        this.lod = lod ?? new MeshLod(0);
-        this.colliderLod = colliderLod;
+        this.visibleLod = visibleLod ?? new MeshLod(0);
+        this.tangibleLod = tangibleLod;
         this.updateDistace = space.GetChunkSize() / 10f;
     }
 
@@ -38,7 +38,7 @@ public class ClipPlaneViewer : Viewer {
     private ViewChunk[] GetVisible(Point observerPoint) {
         return space
             .GetChunksWithin(observerPoint, clipDistace)
-            .Select(chunk => new ViewChunk(chunk, lod, colliderLod))
+            .Select(chunk => new ViewChunk(chunk, visibleLod, tangibleLod))
             .ToArray();
     }
 }

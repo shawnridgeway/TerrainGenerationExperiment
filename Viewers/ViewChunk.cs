@@ -1,15 +1,23 @@
 ﻿public struct ViewChunk {
     public readonly Chunk chunk;
-    public readonly MeshLod lod;
-    public readonly MeshLod? colliderLod;
+    public readonly MeshLod? visibleLod;
+    public readonly MeshLod? tangibleLod;
 
-    public ViewChunk(Chunk chunk, MeshLod lod, MeshLod? colliderLod = null) {
+    public ViewChunk(
+        Chunk chunk,
+        MeshLod? visibleLod = null,
+        MeshLod? tangibleLod = null
+    ) {
         this.chunk = chunk;
-        this.lod = lod;
-        this.colliderLod = colliderLod;
+        this.visibleLod = visibleLod;
+        this.tangibleLod = tangibleLod;
     }
 
-    public bool HasCollider() {
-        return colliderLod != null;
+    public bool IsVisible() {
+        return !(visibleLod is null);
+    }
+
+    public bool IsTangible() {
+        return !(tangibleLod is null);
     }
 }
