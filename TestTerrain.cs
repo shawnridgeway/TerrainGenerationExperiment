@@ -128,11 +128,17 @@ public class TestTerrain : MonoBehaviour {
         Viewer viewer = new FalloffViewer(space, observer);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
         terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
+        terrainRenderer.OnInitialRenderComplete += StartGame;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
     }
 
     void Update() {
         terrainRenderer.Render();
         //terrainRenderer2.Render();
+    }
+
+    private void StartGame() {
+        Debug.Log("Game Start!");
+        observer.GetComponent<ObserverController>().isActive = true;
     }
 }

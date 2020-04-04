@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -12,6 +13,9 @@ public class TerrainRenderer {
     private readonly Dictionary<Chunk, ViewChunk> viewState = new Dictionary<Chunk, ViewChunk>();
     // Cache of all created game objects
     private readonly TerrainObjectCache objectCache;
+
+    private bool initialRenderComplete = false;
+    public event Action OnInitialRenderComplete;
 
     public TerrainRenderer(Transform parent, Viewer viewer, MeshGenerator meshGenerator, Material material) {
         this.viewer = viewer;
@@ -44,7 +48,17 @@ public class TerrainRenderer {
 
     public void Render() {
         ViewChunk[] newView = viewer.View();
-        ApplyNewState(newView);
+        bool updateCompletelyApplied = ApplyNewState(newView);
+        TriggerEvents(
+            updateCompletelyApplied: updateCompletelyApplied
+        );
+    }
+
+    private void TriggerEvents(bool updateCompletelyApplied) {
+        if (!initialRenderComplete && updateCompletelyApplied) {
+            initialRenderComplete = true;
+            OnInitialRenderComplete();
+        }
     }
 
     /* ===== State Operations ===== */
@@ -52,25 +66,27 @@ public class TerrainRenderer {
     // Commit a new state to the game state and view state
     // NB. sice this relies on meshes being previously built, the final
     // state may not match the proposed new state
-    private void ApplyNewState(ViewChunk[] newView) {
+    private bool ApplyNewState(ViewChunk[] newView) {
+        bool updateCompletelyApplied = true;
         // Remove no longer active chunks
         HashSet<Chunk> newStateChunks = new HashSet<Chunk>(newView.Select(viewChunk => viewChunk.chunk).ToArray());
         HashSet<Chunk> previousStateChunks = new HashSet<Chunk>(viewState.Keys.ToArray());
         foreach (Chunk previousSateChunk in previousStateChunks) {
             if (!newStateChunks.Contains(previousSateChunk)) {
-                SetChunkState(new ViewChunk(previousSateChunk, null, null));
+                updateCompletelyApplied &= SetChunkState(new ViewChunk(previousSateChunk, null, null));
             }
         }
         // Add/Update active chunks
         foreach (ViewChunk newViewChunk in newView) {
-            SetChunkState(newViewChunk);
+            updateCompletelyApplied &= SetChunkState(newViewChunk);
         }
+        return updateCompletelyApplied;
     }
 
     /* ===== Chunk Operations ===== */
 
     // Update visibility & tangibility. Update viewState
-    private void SetChunkState(ViewChunk proposedViewChunk) {
+    private bool SetChunkState(ViewChunk proposedViewChunk) {
         Chunk chunk = proposedViewChunk.chunk;
         // Here we specifically update the tangibility first to keep gameplay smooth
         bool tangibilitySetSuccess = SetChunkTangibility(chunk, proposedViewChunk.visibleLod);
@@ -86,7 +102,8 @@ public class TerrainRenderer {
         if (finalizedViewChunk.tangibleLod != null || finalizedViewChunk.visibleLod != null) {
             viewState.Add(chunk, finalizedViewChunk); // Only add if visible or tangible
         }
-        SetGameObjectActivity(chunk); // Finally set GO activity
+        SetGameObjectActivity(chunk); // Update game object activity (optimization)
+        return tangibilitySetSuccess && visibilitySetSuccess;
     }
 
     private bool SetChunkVisibility(Chunk chunk, MeshLod? maybeNewLod) {

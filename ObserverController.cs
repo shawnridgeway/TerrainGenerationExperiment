@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ObserverController : MonoBehaviour
-{
+public class ObserverController : MonoBehaviour {
+    public bool isActive = false;
     public float speed = 6.0F;
     public float jumpSpeed = 8.0F;
     public float gravity = 20.0F;
@@ -14,6 +14,9 @@ public class ObserverController : MonoBehaviour
     }
 
     void Update() {
+        if (!isActive) {
+            return;
+        }
         if (controller.isGrounded) {
             transform.Rotate(0, Input.GetAxis("Horizontal") * 75 * Time.deltaTime, 0);
             moveDirection = new Vector3(0, 0, Input.GetAxis("Vertical") * 2);
