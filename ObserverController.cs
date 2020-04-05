@@ -17,8 +17,8 @@ public class ObserverController : MonoBehaviour {
         if (!isActive) {
             return;
         }
+        transform.Rotate(0, Input.GetAxis("Horizontal") * 75 * Time.deltaTime, 0);
         if (controller.isGrounded) {
-            transform.Rotate(0, Input.GetAxis("Horizontal") * 75 * Time.deltaTime, 0);
             moveDirection = new Vector3(0, 0, Input.GetAxis("Vertical") * 2);
             moveDirection = transform.TransformDirection(moveDirection);
             moveDirection *= speed;

@@ -184,7 +184,7 @@ public class TerrainRenderer {
     // Returns true if addition was successful,
     // otherwise returns false (due to mesh not being ready yet)
     private bool AddVisibleMesh(Chunk chunk, MeshLod meshLod) {
-        Mesh maybeMesh = meshGenerator.RequestMesh(chunk, meshLod);
+        Mesh maybeMesh = meshGenerator.RequestMesh(chunk, meshLod, includeCollider: false);
         if (maybeMesh == null) {
             return false;
         }
@@ -206,7 +206,7 @@ public class TerrainRenderer {
     // Returns true if addition was successful,
     // otherwise returns false (due to mesh not being ready yet)
     private bool AddTangibleMesh(Chunk chunk, MeshLod meshLod) {
-        Mesh maybeMesh = meshGenerator.RequestMesh(chunk, meshLod);
+        Mesh maybeMesh = meshGenerator.RequestMesh(chunk, meshLod, includeCollider: true);
         if (maybeMesh == null) {
             return false;
         }
