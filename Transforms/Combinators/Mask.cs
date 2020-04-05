@@ -4,9 +4,9 @@ using UnityEngine;
 using System.Linq;
 
 public class Mask : TerrainTransform {
-    private readonly TerrainTransform mask;
     private readonly TerrainTransform a;
     private readonly TerrainTransform b;
+    private readonly TerrainTransform mask;
 
     public Mask(TerrainTransform a, TerrainTransform b, MaskOptions options) {
         this.a = a;
@@ -18,9 +18,17 @@ public class Mask : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
+        float maskValue = mask.Process(point);
+        // Optimization, if one is unused, do not process that one
+        if (maskValue == 0) {
+            return b.Process(point);
+        }
+        if (maskValue == 1) {
+            return a.Process(point);
+        }
+        // Else, process both and weigh each by the maskValue
         float aValue = a.Process(point);
         float bValue = b.Process(point);
-        float maskValue = mask.Process(point);
         return (aValue * maskValue) + (bValue * (1 - maskValue));
     }
 
@@ -28,8 +36,8 @@ public class Mask : TerrainTransform {
         TerrainInformation aInfo = a.GetTerrainInformation();
         TerrainInformation bInfo = b.GetTerrainInformation();
         return new TerrainInformation(
-            Mathf.Min(aInfo.min * bInfo.min, aInfo.min * bInfo.max, aInfo.max * bInfo.min, aInfo.max * bInfo.max),
-            Mathf.Max(aInfo.min * bInfo.min, aInfo.min * bInfo.max, aInfo.max * bInfo.min, aInfo.max * bInfo.max)
+            Mathf.Min(aInfo.min, bInfo.min),
+            Mathf.Max(aInfo.max, bInfo.max)
         );
     }
 }

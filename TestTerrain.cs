@@ -93,17 +93,7 @@ public class TestTerrain : MonoBehaviour {
             )
         );
         TerrainTransform m = new Curve(
-            new InverseLerp(
-                new SimpleVoronoi(
-                    new SimpleVoronoiOptions(
-                        voronoiModel,
-                        (VoronoiRegion region, Point point) => {
-                            return region.GetDistanceToClosestBorder(point.GetLocation());
-                        }
-                    )
-                ),
-                new InverseLerpOptions(0, 50)
-            ),
+            scaledNoise,
             new CurveOptions(animationCurve)
         );
         //TerrainTransform voro = new SimpleVoronoi(
@@ -128,7 +118,7 @@ public class TestTerrain : MonoBehaviour {
         //}));
         //TerrainTransform testTerr = new LocalErosion(new Scalar(noise, new ScalarOptions(5f)), new LocalErosionOptions());
 
-        MeshGenerator meshGenerator = new CartesianMeshGenerator(m, 20);
+        MeshGenerator meshGenerator = new CartesianMeshGenerator(mask, 20);
         //CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(scaledNoise, 20);
         //ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 50, lod: new MeshLod(1), colliderLod: new MeshLod(3));
         Viewer viewer = new FalloffViewer(space, observer);
