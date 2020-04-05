@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 public class TestTerrain : MonoBehaviour {
     public Material material;
@@ -7,6 +8,11 @@ public class TestTerrain : MonoBehaviour {
     //public Texture2D image;
     TerrainRenderer terrainRenderer;
     //TerrainRenderer terrainRenderer2;
+
+    private bool initialRenderComplete = false;
+    private bool previousRenderComplete = true;
+    private DateTime renderBeginTime;
+    private bool isDebugOn = false;
 
     void Start() {
         ChunkedSpace space = new CartesianSpace();
@@ -128,7 +134,7 @@ public class TestTerrain : MonoBehaviour {
         Viewer viewer = new FalloffViewer(space, observer);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
         terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
-        terrainRenderer.OnInitialRenderComplete += StartGame;
+        terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
     }
 
@@ -140,5 +146,24 @@ public class TestTerrain : MonoBehaviour {
     private void StartGame() {
         Debug.Log("Game Start!");
         observer.GetComponent<ObserverController>().isActive = true;
+    }
+
+    private void HandleRenderComplete(bool updateCompletelyApplied) {
+        if (!initialRenderComplete && updateCompletelyApplied) {
+            StartGame();
+            initialRenderComplete = true;
+        }
+
+        if (!isDebugOn) {
+            return;
+        }
+        if (previousRenderComplete && !updateCompletelyApplied) {
+            Debug.Log("Beginning Render...");
+            renderBeginTime = DateTime.Now;
+        }
+        if (!previousRenderComplete && updateCompletelyApplied) {
+            Debug.Log("Render Complete in " + DateTime.Now.Subtract(renderBeginTime).Seconds + " seconds");
+        }
+        previousRenderComplete = updateCompletelyApplied;
     }
 }

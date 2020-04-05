@@ -14,8 +14,7 @@ public class TerrainRenderer {
     // Cache of all created game objects
     private readonly TerrainObjectCache objectCache;
 
-    private bool initialRenderComplete = false;
-    public event Action OnInitialRenderComplete;
+    public event Action<bool> OnRenderFinished;
 
     public TerrainRenderer(Transform parent, Viewer viewer, MeshGenerator meshGenerator, Material material) {
         this.viewer = viewer;
@@ -55,10 +54,7 @@ public class TerrainRenderer {
     }
 
     private void TriggerEvents(bool updateCompletelyApplied) {
-        if (!initialRenderComplete && updateCompletelyApplied) {
-            initialRenderComplete = true;
-            OnInitialRenderComplete();
-        }
+        OnRenderFinished(updateCompletelyApplied);
     }
 
     /* ===== State Operations ===== */
