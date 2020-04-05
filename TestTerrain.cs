@@ -4,7 +4,7 @@ using System;
 public class TestTerrain : MonoBehaviour {
     public Material material;
     public Transform observer;
-    //public AnimationCurve animationCurve;
+    public AnimationCurve animationCurve;
     //public Texture2D image;
     TerrainRenderer terrainRenderer;
     //TerrainRenderer terrainRenderer2;
@@ -104,7 +104,7 @@ public class TestTerrain : MonoBehaviour {
                 ),
                 new InverseLerpOptions(0, 50)
             ),
-            new CurveOptions(null)
+            new CurveOptions(animationCurve)
         );
         //TerrainTransform voro = new SimpleVoronoi(
         //    new SimpleVoronoiOptions(
@@ -128,7 +128,7 @@ public class TestTerrain : MonoBehaviour {
         //}));
         //TerrainTransform testTerr = new LocalErosion(new Scalar(noise, new ScalarOptions(5f)), new LocalErosionOptions());
 
-        MeshGenerator meshGenerator = new CartesianMeshGenerator(mask, 20);
+        MeshGenerator meshGenerator = new CartesianMeshGenerator(m, 20);
         //CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(scaledNoise, 20);
         //ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 50, lod: new MeshLod(1), colliderLod: new MeshLod(3));
         Viewer viewer = new FalloffViewer(space, observer);

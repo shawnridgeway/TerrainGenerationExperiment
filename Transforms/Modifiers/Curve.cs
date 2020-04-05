@@ -1,10 +1,14 @@
-﻿using System.Collections;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
 
 public class Curve : TerrainTransform {
 	private readonly TerrainTransform a;
 	private readonly CurveOptions options;
+
+    private readonly ConcurrentDictionary<int, AnimationCurve> curveClonesByThread =
+        new ConcurrentDictionary<int, AnimationCurve>();
 
 	public Curve(TerrainTransform a, CurveOptions options) {
 		this.a = a;
@@ -12,14 +16,13 @@ public class Curve : TerrainTransform {
 	}
 
     protected override float Evaluate(Point point) {
-        // Get a separate clone so that there are no threading issues
-        AnimationCurve animationCurveClone = new AnimationCurve(options.curve.keys);
+        AnimationCurve curve = GetAnimationCurve();
         float aValue = a.Process(point);
         TerrainInformation aInfo = a.GetTerrainInformation();
 		return Mathf.Lerp(
             aInfo.min,
             aInfo.max,
-            animationCurveClone.Evaluate(
+            curve.Evaluate(
                 Mathf.InverseLerp(
                     aInfo.min,
                     aInfo.max,
@@ -30,13 +33,24 @@ public class Curve : TerrainTransform {
     }
 
     public override TerrainInformation GetTerrainInformation() {
-        // Get a separate clone so that there are no threading issues
-        AnimationCurve animationCurveClone = new AnimationCurve(options.curve.keys);
+        AnimationCurve curve = GetAnimationCurve();
         TerrainInformation aInfo = a.GetTerrainInformation();
         return new TerrainInformation(
-            Mathf.Min(animationCurveClone.Evaluate(aInfo.min), animationCurveClone.Evaluate(aInfo.max)),
-            Mathf.Max(animationCurveClone.Evaluate(aInfo.min), animationCurveClone.Evaluate(aInfo.max))
+            Mathf.Min(curve.Evaluate(aInfo.min), curve.Evaluate(aInfo.max)),
+            Mathf.Max(curve.Evaluate(aInfo.min), curve.Evaluate(aInfo.max))
         );
+    }
+
+    private AnimationCurve GetAnimationCurve() {
+        // Get a separate clone per thread so there are no concurrency issues
+        int currentThreadHash = Thread.CurrentThread.GetHashCode();
+        AnimationCurve curve;
+        bool curveExists = curveClonesByThread.TryGetValue(currentThreadHash, out curve);
+        if (!curveExists) {
+            curve = new AnimationCurve(options.curve.keys);
+            curveClonesByThread.TryAdd(currentThreadHash, curve);
+        }
+        return curve;
     }
 }
 
