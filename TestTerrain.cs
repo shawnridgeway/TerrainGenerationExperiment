@@ -8,6 +8,7 @@ public class TestTerrain : MonoBehaviour {
     //public Texture2D image;
     TerrainRenderer terrainRenderer;
     //TerrainRenderer terrainRenderer2;
+    private ChunkedSpace space;
 
     private bool initialRenderComplete = false;
     private bool previousRenderComplete = true;
@@ -15,7 +16,7 @@ public class TestTerrain : MonoBehaviour {
     private bool isDebugOn = false;
 
     void Start() {
-        ChunkedSpace space = new CartesianSpace();
+        space = new PlanarSpace();
         //ChunkedSpace space2 = new CartesianSpace(.1f);
         //Chunk[] chunks = space.GetChunksWithin(new Vector3(0, 0, 0), 200);
         //Point[] points = chunks[0].GetPoints();
@@ -80,7 +81,7 @@ public class TestTerrain : MonoBehaviour {
                             new SimpleVoronoiOptions(
                                 voronoiModel,
                                 (VoronoiRegion region, Point point) => {
-                                    return region.GetDistanceToClosestBorder(point.GetLocation());
+                                    return region.GetDistanceToClosestBorder(point.GetPosition());
                                 }
                             )
                         ),
@@ -118,19 +119,39 @@ public class TestTerrain : MonoBehaviour {
         //}));
         //TerrainTransform testTerr = new LocalErosion(new Scalar(noise, new ScalarOptions(5f)), new LocalErosionOptions());
 
-        MeshGenerator meshGenerator = new CartesianMeshGenerator(mask, 20);
+        TerrainTransform largeNoise = new Addition(new Scalar(
+            new Noise(new NoiseOptions(scale: 800, octaves: 8, persistance: .4f, seed: 19)),
+            new ScalarOptions(10f)
+        ), new Constant(new ConstantOptions(3)));
+        TerrainTransform largeNoiseEx = new Scalar(
+            new Exaggeration(
+                largeNoise,
+                new ExaggerationOptions(2f)
+            ),
+            new ScalarOptions(25)
+        );
+
+        MeshGenerator meshGenerator = new CartesianMeshGenerator(space, largeNoiseEx);
         //CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(scaledNoise, 20);
-        //ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 50, lod: new MeshLod(1), colliderLod: new MeshLod(3));
-        Viewer viewer = new FalloffViewer(space, observer);
+        ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
+        //Viewer viewer = new FalloffViewer(space, observer);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
         terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
         terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
+
+        float startPosition = largeNoiseEx.Process(space.GetPointFromPosition(Vector3.zero));
+        SetStartPosition(startPosition);
     }
 
     void Update() {
         terrainRenderer.Render();
         //terrainRenderer2.Render();
+    }
+
+    private void SetStartPosition(float startPosition) {
+        float observerHeight = observer.transform.localScale.y;
+        observer.transform.position = new Vector3(0, startPosition + observerHeight + 2, 0);
     }
 
     private void StartGame() {
@@ -155,5 +176,9 @@ public class TestTerrain : MonoBehaviour {
             Debug.Log("Render Complete in " + DateTime.Now.Subtract(renderBeginTime).Seconds + " seconds");
         }
         previousRenderComplete = updateCompletelyApplied;
+    }
+
+    public Vector3 GetSurfaceNormal(Vector3 position) {
+        return space.GetNormalFromPosition(position);
     }
 }

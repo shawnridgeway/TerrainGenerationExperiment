@@ -9,7 +9,7 @@ public class SimpleVoronoi : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
-        VoronoiRegion region = options.voronoiModel.GetCanonicalRegionForPoint(point.GetLocation());
+        VoronoiRegion region = options.voronoiModel.GetCanonicalRegionForPoint(point.GetPosition());
         return options.mapResultToValue(region, point);
     }
 

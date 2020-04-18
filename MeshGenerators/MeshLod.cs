@@ -15,6 +15,10 @@ public struct MeshLod : IComparable<MeshLod> {
         this.value = value;
     }
 
+    public int GetInterval() {
+        return value == 0 ? 1 : value * 2; // 1,2,4,6,8,10,12
+    }
+
     public int CompareTo(MeshLod other) {
         return value.CompareTo(other);
     }

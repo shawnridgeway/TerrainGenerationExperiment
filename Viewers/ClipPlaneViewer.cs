@@ -23,11 +23,11 @@ public class ClipPlaneViewer : Viewer {
         this.clipDistace = clipDistace;
         this.visibleLod = visibleLod ?? new MeshLod(0);
         this.tangibleLod = tangibleLod;
-        this.updateDistace = space.GetChunkSize() / 10f;
+        this.updateDistace = space.GetChunkScale() / 10f;
     }
 
     public ViewChunk[] View() {
-        Point observerPoint = space.GetPointInSpace(observer.position);
+        Point observerPoint = space.GetPointFromPosition(observer.position);
         if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
             previousObserverPoint = observerPoint;
             view = GetVisible(observerPoint);

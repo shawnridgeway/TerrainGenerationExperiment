@@ -21,11 +21,11 @@ public class FalloffViewer : Viewer {
         this.observer = observer;
         this.visibilityLodPlanes = visibilityLodPlanes ?? GetDefaultVisibilityLodPlanes();
         this.collisionLodPlanes = collisionLodPlanes ?? GetDefaultCollisionLodPlanes();
-        this.updateDistace = space.GetChunkSize() / 10f;
+        this.updateDistace = space.GetChunkScale() / 10f;
     }
 
     public ViewChunk[] View() {
-        Point observerPoint = space.GetPointInSpace(observer.position);
+        Point observerPoint = space.GetPointFromPosition(observer.position);
         if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
             previousObserverPoint = observerPoint;
             view = GetVisible(observerPoint);
@@ -49,7 +49,7 @@ public class FalloffViewer : Viewer {
 
     private MeshLod GetMaxLod(SortedList<MeshLod, float> lodPlanes, Chunk chunk) {
         MeshLod maxLod = lodPlanes.First().Key;
-        Point closestPoint = space.GetPointInSpace(observer.position);
+        Point closestPoint = space.GetPointFromPosition(observer.position);
         foreach (var entry in lodPlanes) {
             MeshLod meshLod = entry.Key;
             float distanceThreshold = entry.Value;

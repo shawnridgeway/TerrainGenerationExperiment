@@ -5,19 +5,19 @@ using System;
 
 public class MeshBuilder {
     readonly int verticiesPerLineWithBorder;
-    readonly Func<int, bool> isBorderVertex;
+    readonly Func<Vector3, bool> isBorderVertex;
     readonly Vector3[] verticiesWithBorder;
     int vertexWithBorderIndex;
     readonly Vector2[] uvsWithBorder;
-    readonly (int a, int b, int c)[] trianglesWithBorder;
+    readonly MeshTriangle[] trianglesWithBorder; // TODO: make this a Set
     int triangleWithBorderIndex;
     Vector3[] normalsWithBorder;
 
-    public MeshBuilder(int verticiesPerLineWithBorder, Func<int, bool> isBorderVertex) {
+    public MeshBuilder(int verticiesPerLineWithBorder, Func<Vector3, bool> isBorderVertex) {
         this.verticiesPerLineWithBorder = verticiesPerLineWithBorder;
         this.isBorderVertex = isBorderVertex;
         verticiesWithBorder = new Vector3[verticiesPerLineWithBorder * verticiesPerLineWithBorder];
-        trianglesWithBorder = new (int, int, int)[(verticiesPerLineWithBorder - 1) * (verticiesPerLineWithBorder - 1) * 2];
+        trianglesWithBorder = new MeshTriangle[(verticiesPerLineWithBorder - 1) * (verticiesPerLineWithBorder - 1) * 2];
         uvsWithBorder = new Vector2[verticiesPerLineWithBorder * verticiesPerLineWithBorder];
         vertexWithBorderIndex = 0;
         triangleWithBorderIndex = 0;
@@ -43,7 +43,7 @@ public class MeshBuilder {
     }
 
     public void AddTriangle(int a, int b, int c) {
-        trianglesWithBorder[triangleWithBorderIndex] = (a, b, c);
+        trianglesWithBorder[triangleWithBorderIndex] = new MeshTriangle(a, b, c);
         triangleWithBorderIndex++;
     }
 
@@ -77,7 +77,7 @@ public class MeshBuilder {
         Vector3[] normals = new Vector3[(verticiesPerLineWithBorder - 2) * (verticiesPerLineWithBorder - 2)];
         int index = 0;
         for (int indexWithBorder = 0; indexWithBorder < verticiesWithBorder.Length; indexWithBorder++) {
-            if (!isBorderVertex(indexWithBorder)) {
+            if (!isBorderVertex(verticiesWithBorder[indexWithBorder])) {
                 vertices[index] = verticiesWithBorder[indexWithBorder];
                 uvs[index] = uvsWithBorder[indexWithBorder];
                 normals[index] = normalsWithBorder[indexWithBorder];
@@ -87,10 +87,10 @@ public class MeshBuilder {
         int trianglesIndex = 0;
         for (int trianglesIndexWithBorder = 0; trianglesIndexWithBorder < trianglesWithBorder.Length; trianglesIndexWithBorder++) {
             (int a, int b, int c) = trianglesWithBorder[trianglesIndexWithBorder];
-            if (!isBorderVertex(a) && !isBorderVertex(b) && !isBorderVertex(c)) {
-                triangles[trianglesIndex] = BorderedToUnborderedVertexIndex(trianglesWithBorder[trianglesIndexWithBorder].a);
-                triangles[trianglesIndex + 1] = BorderedToUnborderedVertexIndex(trianglesWithBorder[trianglesIndexWithBorder].b);
-                triangles[trianglesIndex + 2] = BorderedToUnborderedVertexIndex(trianglesWithBorder[trianglesIndexWithBorder].c);
+            if (!isBorderVertex(verticiesWithBorder[a]) && !isBorderVertex(verticiesWithBorder[b]) && !isBorderVertex(verticiesWithBorder[c])) {
+                triangles[trianglesIndex] = BorderedToUnborderedVertexIndex(a);
+                triangles[trianglesIndex + 1] = BorderedToUnborderedVertexIndex(b);
+                triangles[trianglesIndex + 2] = BorderedToUnborderedVertexIndex(c);
                 trianglesIndex += 3;
             }
         }
@@ -112,5 +112,58 @@ public class MeshBuilder {
             normals = normals
         };
         return meshData;
+    }
+
+    /////// Triangle ///////
+    private MeshTriangle[] PlanarGetTrianglesAtVertex(PlanarPoint vertex) {
+        List<MeshTriangle> resultTriangles = new List<MeshTriangle>();
+
+        Dictionary<Point, int> pointIndexes = new Dictionary<Point, int>();
+        int index, indexE, indexN, indexNW, indexW, indexS, indexSE;
+        pointIndexes.TryGetValue(vertex, out index);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.E), out indexE);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.N), out indexN);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.N).GetNeighbor(PlanarSpace.Direction.W), out indexNW);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.W), out indexW);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.S), out indexS);
+        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.S).GetNeighbor(PlanarSpace.Direction.E), out indexSE);
+
+        // TODO: below
+        if (
+            vertexWithBorderIndex > verticiesPerLineWithBorder && // Not first row
+            vertexWithBorderIndex % verticiesPerLineWithBorder > 0 // Not first column
+        ) {
+            int a = vertexWithBorderIndex - verticiesPerLineWithBorder - 1;
+            int b = vertexWithBorderIndex - verticiesPerLineWithBorder;
+            int c = vertexWithBorderIndex - 1;
+            int d = vertexWithBorderIndex;
+            resultTriangles.Add(new MeshTriangle(a, d, c));
+            resultTriangles.Add(new MeshTriangle(d, a, b));
+        }
+        return resultTriangles.ToArray();
+    }
+
+    private MeshTriangle[] SphericalGetTrianglesAtVertex(SphericalPoint vertex) {
+        List<MeshTriangle> resultTriangles = new List<MeshTriangle>();
+        // TODO
+        return resultTriangles.ToArray();
+    }
+}
+
+struct MeshTriangle {
+    public readonly int indexA;
+    public readonly int indexB;
+    public readonly int indexC;
+
+    public MeshTriangle(int indexA, int indexB, int indexC) {
+        this.indexA = indexA;
+        this.indexB = indexB;
+        this.indexC = indexC;
+    }
+
+    public void Deconstruct(out int indexA, out int indexB, out int indexC) {
+        indexA = this.indexA;
+        indexB = this.indexB;
+        indexC = this.indexC;
     }
 }

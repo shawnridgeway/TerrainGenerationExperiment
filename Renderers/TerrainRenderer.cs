@@ -262,7 +262,7 @@ class TerrainObjectCache {
     private GameObject CreateGameObject(Chunk chunk) {
         GameObject gameObject = new GameObject("Terrain Chunk");
         gameObject.SetActive(false);
-        gameObject.transform.position = chunk.GetCenterLocation();
+        gameObject.transform.position = chunk.GetCenterPosition();
         gameObject.transform.parent = parent;
         return gameObject;
     }

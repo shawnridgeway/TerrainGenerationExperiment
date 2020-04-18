@@ -11,7 +11,7 @@ public class LinearGradient : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
-        Vector2 diffVector = new Vector2(point.GetLocation().x, point.GetLocation().z) - options.center;
+        Vector2 diffVector = new Vector2(point.GetPosition().x, point.GetPosition().z) - options.center;
         float linearPosition = diffVector.x * Mathf.Sin(options.rotation) - diffVector.y * Mathf.Cos(options.rotation);
         float scalePosition = (linearPosition / options.scale) + 0.5f; // Add half to account for center offset
         return options.gradientPattern.EvaluateAtInterval(scalePosition);
