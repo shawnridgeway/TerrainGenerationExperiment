@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-public class ClipPlaneViewer : Viewer {
+public class CutoffViewer : Viewer {
     private readonly ChunkedSpace space;
     private readonly Transform observer;
     private readonly float clipDistace;
@@ -11,7 +11,7 @@ public class ClipPlaneViewer : Viewer {
     private Point previousObserverPoint;
     private ViewChunk[] view = null;
 
-    public ClipPlaneViewer(
+    public CutoffViewer(
         ChunkedSpace space,
         Transform observer,
         float clipDistace,

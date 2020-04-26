@@ -29,7 +29,7 @@ public interface Space {
     Point GetClosestPointTo(Point origin);
     Point[] GetPointsWithin(Point origin, float distance);
     bool IsPointInRange(Point origin, Point point, float distance);
-    TriangleGenerator GetTriangleGenerator(int interval, int borderSize);
+    MeshHelper GetMeshHelper(int interval, int borderSize);
 }
 
 public interface ChunkedSpace : Space {
@@ -59,7 +59,7 @@ public interface Point {
     (Point, Point, Point)[] GetTrianglesForPoint(int interval);
 }
 
-public interface TriangleGenerator {
+public interface MeshHelper {
     (int, int, int)[] GetTriangleIndiciesForPoint(int absIndex);
     bool IsInChunk(int absIndex);
     Vector2 GetUv(int indexInChunk);

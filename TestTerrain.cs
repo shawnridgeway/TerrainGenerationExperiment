@@ -131,13 +131,13 @@ public class TestTerrain : MonoBehaviour {
             new ScalarOptions(25)
         );
 
-        MeshGenerator meshGenerator = new NewMeshGenerator(space, largeNoiseEx);
+        //MeshGenerator meshGenerator = new MeshGenerator(space, largeNoiseEx);
         //MeshGenerator meshGenerator2 = new CartesianMeshGenerator(space, largeNoiseEx);
         //CartesianMeshGenerator meshGenerator2 = new CartesianMeshGenerator(scaledNoise, 20);
-        ClipPlaneViewer viewer = new ClipPlaneViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
+        CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
         //Viewer viewer = new FalloffViewer(space, observer);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
-        terrainRenderer = new TerrainRenderer(transform, viewer, meshGenerator, material);
+        terrainRenderer = new TerrainRenderer(transform, space, viewer, largeNoiseEx, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
         terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);

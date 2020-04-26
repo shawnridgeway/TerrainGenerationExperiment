@@ -2,11 +2,11 @@
 using UnityEngine;
 using System;
 
-public class NewMeshBuilder {
+public class MeshDataBuilder {
     private readonly int unityMaxVertexCount = 65535;
 
     // The space that is being rendered
-    private readonly TriangleGenerator triangleGenerator;
+    private readonly MeshHelper triangleGenerator;
 
     // List of verticies included in the chunk in order (chunk only)
     private readonly Vector3[] chunkVerticies;
@@ -26,7 +26,7 @@ public class NewMeshBuilder {
     private int chunkPointsNextIndex = 0;
     private int borderPointsNextIndex = 0;
 
-    public NewMeshBuilder(Space space, int chunkPointCount, int boderPointCount, int interval, int borderSize) {
+    public MeshDataBuilder(Space space, int chunkPointCount, int boderPointCount, int interval, int borderSize) {
         if (chunkPointCount > unityMaxVertexCount) {
             throw new Exception(
                 string.Format(
@@ -36,7 +36,7 @@ public class NewMeshBuilder {
                 )
             );
         }
-        triangleGenerator = space.GetTriangleGenerator(interval, borderSize);
+        triangleGenerator = space.GetMeshHelper(interval, borderSize);
         chunkVerticies = new Vector3[chunkPointCount];
         borderVerticies = new Vector3[boderPointCount];
         chunkUvs = new Vector2[chunkPointCount];
