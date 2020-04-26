@@ -22,6 +22,12 @@ public class CartesianMeshGenerator : MeshGenerator {
         int vertexInterval = meshLod.GetInterval(); // 1,2,4,6,8,10,12
         int verticiesPerLine = ((originalVerticiesPerLine - 1) / vertexInterval) + 1; // 240, 120, 60, 40, 30, 24, 20
         int verticiesPerLineWithBorder = verticiesPerLine + (borderSize * 2);
+
+        // TODO: create set of chunkPoints
+        // process all points, including border points
+        // for each point:
+        //   - use set to see if is border point
+        //   - add each point using appropriate mesh builder method
         
         // Get points necessary for mesh, including a border of one vertexInterval unit
         IEnumerable<Point> borderedChunkPoints = chunk.GetPoints(vertexInterval, borderSize);

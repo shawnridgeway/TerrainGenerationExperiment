@@ -111,6 +111,14 @@ public class SphericalSpace : ChunkedSpace {
             scale * Mathf.Sin(coordinate.x)
         );
     }
+
+    public TriangleGenerator GetTriangleGenerator(int interval, int borderSize) {
+        throw new NotImplementedException();
+    }
+
+    public int GetChunkCount(int interval, int borderSize) {
+        throw new NotImplementedException();
+    }
 }
 
 public class SphericalChunk : Chunk {
@@ -232,11 +240,11 @@ public class SphericalChunk : Chunk {
         return centerCoordinate.ToString().GetHashCode();
     }
 
-    public override bool Equals(object obj) {
-        if (obj is SphericalChunk) {
-            return ((SphericalChunk)obj).GetHashCode() == GetHashCode();
+    public override bool Equals(object otherObj) {
+        if (otherObj is SphericalChunk otherChunk) {
+            return otherChunk.GetHashCode() == GetHashCode();
         }
-        return Equals(obj);
+        return base.Equals(otherObj);
     }
 }
 
@@ -259,16 +267,16 @@ public class SphericalPoint : Point {
         return space.GetDistanceBetweenPoints(this, point);
     }
 
-    public IEnumerable<Point> GetNeighbors() {
-        yield return GetNeighbor(SphericalSpace.Direction.E);
-        yield return GetNeighbor(SphericalSpace.Direction.NE);
-        yield return GetNeighbor(SphericalSpace.Direction.NW);
-        yield return GetNeighbor(SphericalSpace.Direction.W);
-        yield return GetNeighbor(SphericalSpace.Direction.SW);
-        yield return GetNeighbor(SphericalSpace.Direction.SE);
+    public IEnumerable<Point> GetNeighbors(int interval = 1) {
+        yield return GetNeighbor(SphericalSpace.Direction.E, interval);
+        yield return GetNeighbor(SphericalSpace.Direction.NE, interval);
+        yield return GetNeighbor(SphericalSpace.Direction.NW, interval);
+        yield return GetNeighbor(SphericalSpace.Direction.W, interval);
+        yield return GetNeighbor(SphericalSpace.Direction.SW, interval);
+        yield return GetNeighbor(SphericalSpace.Direction.SE, interval);
     }
 
-    public Point GetNeighbor(Enum direction) {
+    public Point GetNeighbor(Enum direction, int interval = 1) {
         float gridUnit = space.GetGridUnit();
         Vector2 offsetVector = Vector3.zero;
         switch (direction) {
@@ -291,10 +299,10 @@ public class SphericalPoint : Point {
                 offsetVector = new Vector2(-1, 1);
                 break;
         }
-        return new SphericalPoint(coordinate + offsetVector * gridUnit, space);
+        return new SphericalPoint(coordinate + offsetVector * gridUnit * interval, space);
     }
 
-    public IEnumerable<Point> GetBorderPoints(int borderSize) {
+    public IEnumerable<Point> GetBorderPoints(int borderSize = 1, int interval = 1) {
         throw new NotImplementedException();
     }
 
@@ -302,14 +310,25 @@ public class SphericalPoint : Point {
         throw new NotImplementedException();
     }
 
+    public (Point, Point, Point)[] GetTrianglesForPoint(int interval) {
+        (Point, Point, Point)[] triangles = new (Point, Point, Point)[2];
+        Point pointNE, pointNW, pointW;
+        pointW = GetNeighbor(SphericalSpace.Direction.W, interval);
+        pointNW = GetNeighbor(SphericalSpace.Direction.NW, interval);
+        pointNE = GetNeighbor(SphericalSpace.Direction.NE, interval);
+        triangles[0] = (this, pointW, pointNW);
+        triangles[1] = (this, pointNW, pointNE);
+        return triangles;
+    }
+
     public override int GetHashCode() {
         return coordinate.ToString().GetHashCode();
     }
 
-    public override bool Equals(object obj) {
-        if (obj is SphericalPoint) {
-            return ((SphericalPoint)obj).GetHashCode() == GetHashCode();
+    public override bool Equals(object otherObj) {
+        if (otherObj is SphericalPoint otherPoint) {
+            return otherPoint.GetHashCode() == GetHashCode();
         }
-        return Equals(obj);
+        return base.Equals(otherObj);
     }
 }

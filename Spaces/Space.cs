@@ -29,10 +29,12 @@ public interface Space {
     Point GetClosestPointTo(Point origin);
     Point[] GetPointsWithin(Point origin, float distance);
     bool IsPointInRange(Point origin, Point point, float distance);
+    TriangleGenerator GetTriangleGenerator(int interval, int borderSize);
 }
 
 public interface ChunkedSpace : Space {
     float GetChunkScale();
+    int GetChunkCount(int interval, int borderSize);
     Chunk GetClosestChunkTo(Point origin);
     Chunk[] GetChunksWithin(Point origin, float distance);
     bool IsChunkInRange(Point origin, Chunk chunk, float distance);
@@ -49,9 +51,16 @@ public interface Chunk {
 
 public interface Point {
     Vector3 GetPosition(); // Identifier
-    Point GetNeighbor(Enum direction);
-    IEnumerable<Point> GetNeighbors();
-    IEnumerable<Point> GetBorderPoints(int borderSize);
+    Point GetNeighbor(Enum direction, int interval);
+    IEnumerable<Point> GetNeighbors(int interval);
+    IEnumerable<Point> GetBorderPoints(int borderSize, int interval);
     Point MapPoint(Func<Vector3, Vector3> mapFunction);
     float GetDistanceToPoint(Point otherPoint);
+    (Point, Point, Point)[] GetTrianglesForPoint(int interval);
+}
+
+public interface TriangleGenerator {
+    (int, int, int)[] GetTriangleIndiciesForPoint(int absIndex);
+    bool IsInChunk(int absIndex);
+    Vector2 GetUv(int indexInChunk);
 }

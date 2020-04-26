@@ -134,10 +134,19 @@ public class PlanarSpace : ChunkedSpace {
     public Vector3 GetPositionFromCoordinate(Vector2 coordinate) {
         return new Vector3(coordinate.x, 0, coordinate.y) * scale;
     }
+
+    public TriangleGenerator GetTriangleGenerator(int interval, int borderSize) {
+        return new PlanarTriangleGenerator(interval, borderSize);
+    }
+
+    public int GetChunkCount(int interval, int borderSize) {
+        int rowCount = (chunkWidth / interval) + 1 + 2 * borderSize;
+        return rowCount * rowCount;
+    }
 }
 
 
-public class PlanarChunk : Chunk {
+public readonly struct PlanarChunk : Chunk {
     private readonly Vector2 centerCoordinate;
     private readonly Vector3 centerPostion;
     private readonly PlanarSpace space;
@@ -156,8 +165,8 @@ public class PlanarChunk : Chunk {
         int chunkPointCount = PlanarSpace.chunkPointCount;
         float start = (-chunkPointCount / 2) - (borderSize * interval);
         float end = (chunkPointCount / 2) + (borderSize * interval);
-        for (float x = start; x <= end; x += interval) {
-            for (float y = start; y <= end; y += interval) {
+        for (float y = end; y >= start; y -= interval) {
+            for (float x = start; x <= end; x += interval) {
                 yield return new PlanarPoint(
                     new Vector2(x, y) + centerCoordinate,
                     space
@@ -206,16 +215,16 @@ public class PlanarChunk : Chunk {
         return centerCoordinate.ToString().GetHashCode();
     }
 
-    public override bool Equals(object obj) {
-        if (obj is PlanarChunk) {
-            return ((PlanarChunk)obj).GetHashCode() == GetHashCode();
+    public override bool Equals(object otherObj) {
+        if (otherObj is PlanarChunk otherChunk) {
+            return otherChunk.GetHashCode() == GetHashCode();
         }
-        return Equals(obj);
+        return base.Equals(otherObj);
     }
 }
 
 
-public class PlanarPoint : Point {
+public readonly struct PlanarPoint : Point {
     private readonly Vector2 coordinate;
     private readonly Vector3 position;
     private readonly PlanarSpace space;
@@ -234,14 +243,14 @@ public class PlanarPoint : Point {
         return space.GetDistanceBetweenPoints(this, point);
     }
 
-    public IEnumerable<Point> GetNeighbors() {
-        yield return GetNeighbor(PlanarSpace.Direction.E);
-        yield return GetNeighbor(PlanarSpace.Direction.N);
-        yield return GetNeighbor(PlanarSpace.Direction.W);
-        yield return GetNeighbor(PlanarSpace.Direction.S);
+    public IEnumerable<Point> GetNeighbors(int interval = 1) {
+        yield return GetNeighbor(PlanarSpace.Direction.E, interval);
+        yield return GetNeighbor(PlanarSpace.Direction.N, interval);
+        yield return GetNeighbor(PlanarSpace.Direction.W, interval);
+        yield return GetNeighbor(PlanarSpace.Direction.S, interval);
     }
 
-    public Point GetNeighbor(Enum direction) {
+    public Point GetNeighbor(Enum direction, int interval = 1) {
         Vector2 offsetVector = Vector3.zero;
         switch (direction) {
             case PlanarSpace.Direction.E:
@@ -257,29 +266,173 @@ public class PlanarPoint : Point {
                 offsetVector = new Vector2(0, -1);
                 break;
         }
-        return new PlanarPoint(coordinate + offsetVector, space);
+        return new PlanarPoint(coordinate + offsetVector * interval, space);
     }
 
-    public IEnumerable<Point> GetBorderPoints(int borderSize) {
-        for (float x = -borderSize; x <= borderSize; x++) {
-            for (float y = -borderSize; y <= borderSize; y ++) {
+    public IEnumerable<Point> GetBorderPoints(int borderSize = 1, int interval = 1) {
+        for (float x = -borderSize * interval; x <= borderSize * interval; x += interval) {
+            for (float y = -borderSize * interval; y <= borderSize * interval; y += interval) {
                 yield return new PlanarPoint(new Vector2(x, y) + coordinate, space);
             }
         }
     }
 
     public Point MapPoint(Func<Vector3, Vector3> mapFunction) {
-        return space.GetPointFromPosition(mapFunction(position));
+        return space.GetPointFromPosition(mapFunction(GetPosition()));
+    }
+
+    public (Point, Point, Point)[] GetTrianglesForPoint(int interval) {
+        (Point, Point, Point)[] triangles = new (Point, Point, Point)[2];
+        Point pointN = GetNeighbor(PlanarSpace.Direction.N, interval);
+        Point pointW = GetNeighbor(PlanarSpace.Direction.W, interval);
+        Point pointNW = GetNeighbor(PlanarSpace.Direction.N, interval)
+            .GetNeighbor(PlanarSpace.Direction.W, interval);
+        triangles[0] = (this, pointW, pointNW);
+        triangles[1] = (this, pointNW, pointN);
+        return triangles;
     }
 
     public override int GetHashCode() {
         return coordinate.ToString().GetHashCode();
     }
 
-    public override bool Equals(object obj) {
-        if (obj is PlanarPoint) {
-            return ((PlanarPoint)obj).GetHashCode() == GetHashCode();
+    public override bool Equals(object otherObj) {
+        if (otherObj is PlanarPoint otherPoint) {
+            return otherPoint.GetHashCode() == GetHashCode();
         }
-        return Equals(obj);
+        return base.Equals(otherObj);
+    }
+
+    public override String ToString() {
+        return coordinate.ToString();
+    }
+
+    // Return only triangles that are in border or chunk
+    //public (int a, int b, int c, bool triangleIsInChunk)[] GetTriangleIndiciesForPoint(int index, bool pointIsInChunk, int interval, int borderSize) {
+    //    (int, int, int, bool)[] triangles;
+    //    int rowCount = PlanarSpace.chunkWidth / interval + 1;
+    //    int rowWithBorderCount = rowCount + 2 * borderSize;
+    //    int pointN, pointW, pointNW;
+    //    if (pointIsInChunk) {
+    //        bool isOnEdgeN = index < rowCount;
+    //        bool isOnEdgeW = index % rowCount == 0;
+    //        triangles = new (int, int, int, bool)[2];
+    //        pointN = isOnEdgeN ? index + borderSize
+    //            : index - rowCount;
+    //        pointW = isOnEdgeW ? index + rowWithBorderCount + (index / rowCount) * borderSize * 2
+    //            : index - 1;
+    //        pointNW = isOnEdgeN && isOnEdgeW ? 0
+    //            : isOnEdgeN ? pointN - 1
+    //            : isOnEdgeW ? pointW - borderSize * 2
+    //            : index - rowCount - 1;
+    //        triangles[0] = (index, pointW, pointNW, !isOnEdgeN && !isOnEdgeW);
+    //        triangles[1] = (index, pointNW, pointN, !isOnEdgeN && !isOnEdgeW);
+    //    } else {
+    //        bool isOnEdgeN = index < rowWithBorderCount;
+    //        bool isOnEdgeW = (index - rowWithBorderCount) % (borderSize * 2) == 0;
+    //        bool isOnEdgeS = index >= rowWithBorderCount + (borderSize * 2) * rowCount;
+    //        bool isOnEdgeE = (index - rowWithBorderCount) % (borderSize * 2) == borderSize * 2 - 1;
+    //        if (isOnEdgeN || isOnEdgeW) {
+    //            return new (int, int, int, bool)[0];
+    //        }
+    //        triangles = new (int, int, int, bool)[2];
+    //        // TODO
+    //        //pointN = isOnEdgeN ? index + borderSize
+    //        //    : index - rowCount;
+    //        //pointW = isOnEdgeW ? index + rowWithBorderCount + (index / rowCount) * borderSize * 2
+    //        //    : index - 1;
+    //        //pointNW = isOnEdgeN && isOnEdgeW ? 0
+    //        //    : isOnEdgeN ? pointN - 1
+    //        //    : isOnEdgeW ? pointW - borderSize * 2
+    //        //    : index - rowCount - 1;
+    //        triangles[0] = (index, pointW, pointNW, !isOnEdgeN && !isOnEdgeW);
+    //        triangles[1] = (index, pointNW, pointN, !isOnEdgeN && !isOnEdgeW);
+    //    }
+    //    return triangles;
+    //}
+
+    
+}
+
+public struct PlanarTriangleGenerator : TriangleGenerator {
+    private readonly int interval;
+    private readonly int borderSize;
+    private readonly int rowCount;
+    private readonly int rowWithBorderCount;
+
+    public PlanarTriangleGenerator(int interval, int borderSize) {
+        this.interval = interval;
+        this.borderSize = borderSize;
+        rowCount = PlanarSpace.chunkWidth / interval + 1;
+        rowWithBorderCount = rowCount + 2 * borderSize;
+    }
+
+    public (int, int, int)[] GetTriangleIndiciesForPoint(int absIndex) {
+        // If the point is on the N or W edge, then we do not include the triangles
+        bool isOnEdgeN = absIndex < rowWithBorderCount;
+        bool isOnEdgeW = absIndex % rowWithBorderCount == 0;
+        if (isOnEdgeN || isOnEdgeW) {
+            return new (int, int, int)[0];
+        }
+        // Otherwise, get the 2 triangle for this point
+        (int, int, int)[] triangles = new (int, int, int)[2];
+        int absIndexN = absIndex - rowWithBorderCount;
+        int absIndexW = absIndex - 1;
+        int absIndexNW = absIndex - rowWithBorderCount - 1;
+
+        triangles[0] = (
+            ConvertAbsToRelativeIndex(absIndex),
+            ConvertAbsToRelativeIndex(absIndexW),
+            ConvertAbsToRelativeIndex(absIndexNW)
+        );
+        triangles[1] = (
+            ConvertAbsToRelativeIndex(absIndex),
+            ConvertAbsToRelativeIndex(absIndexNW),
+            ConvertAbsToRelativeIndex(absIndexN)
+        );
+        return triangles;
+    }
+
+    private int ConvertAbsToRelativeIndex(int absIndex) {
+        // N border
+        if (absIndex < rowWithBorderCount * borderSize) {
+            return GetBorderIndexAsNegative(absIndex);
+        }
+        // S border
+        if (absIndex >= rowWithBorderCount * (rowWithBorderCount - borderSize)) {
+            return GetBorderIndexAsNegative(absIndex - rowCount * rowCount);
+        }
+        int colIndex = absIndex % rowWithBorderCount;
+        int rowIndex = absIndex / rowWithBorderCount;
+        // W border
+        if (colIndex < borderSize) {
+            return GetBorderIndexAsNegative(rowWithBorderCount * borderSize + 2 * borderSize * (rowIndex - borderSize));
+        }
+        // E border
+        if (colIndex >= rowWithBorderCount - borderSize) {
+            return GetBorderIndexAsNegative(rowWithBorderCount * borderSize + 2 * borderSize * (rowIndex - borderSize) + borderSize);
+        }
+        // in chunk
+        return absIndex - rowWithBorderCount * borderSize - (2 * borderSize * (rowIndex - borderSize) + borderSize);
+    }
+
+    private int GetBorderIndexAsNegative(int positiveIndex) {
+        return (positiveIndex + 1) * -1;
+    }
+
+    public Vector2 GetUv(int indexInChunk) {
+        int colIndex = indexInChunk % rowWithBorderCount;
+        int rowIndex = indexInChunk / rowWithBorderCount;
+        return new Vector2(
+            0.5f + (colIndex / (float)rowCount),
+            0.5f - (rowIndex / (float)rowCount)
+        );
+    }
+
+    public bool IsInChunk(int absIndex) {
+        return absIndex >= rowWithBorderCount * borderSize && // On N side
+            absIndex % rowWithBorderCount >= borderSize && // On W side
+            absIndex % rowWithBorderCount < rowWithBorderCount - borderSize && // On E side
+            absIndex < rowWithBorderCount * (rowWithBorderCount - borderSize); // On S side
     }
 }

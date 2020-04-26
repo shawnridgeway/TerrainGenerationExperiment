@@ -54,7 +54,7 @@ public class TerrainRenderer {
     }
 
     private void TriggerEvents(bool updateCompletelyApplied) {
-        OnRenderFinished(updateCompletelyApplied);
+        OnRenderFinished?.Invoke(updateCompletelyApplied);
     }
 
     /* ===== State Operations ===== */

@@ -107,46 +107,11 @@ public class MeshBuilder {
         (Vector3[] vertices, int[] triangles, Vector2[] uvs, Vector3[] normals) = Trim();
         MeshData meshData = new MeshData {
             vertices = vertices,
-            triangles = triangles,
+            normals = normals,
             uvs = uvs,
-            normals = normals
+            triangles = triangles,
         };
         return meshData;
-    }
-
-    /////// Triangle ///////
-    private MeshTriangle[] PlanarGetTrianglesAtVertex(PlanarPoint vertex) {
-        List<MeshTriangle> resultTriangles = new List<MeshTriangle>();
-
-        Dictionary<Point, int> pointIndexes = new Dictionary<Point, int>();
-        int index, indexE, indexN, indexNW, indexW, indexS, indexSE;
-        pointIndexes.TryGetValue(vertex, out index);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.E), out indexE);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.N), out indexN);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.N).GetNeighbor(PlanarSpace.Direction.W), out indexNW);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.W), out indexW);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.S), out indexS);
-        pointIndexes.TryGetValue(vertex.GetNeighbor(PlanarSpace.Direction.S).GetNeighbor(PlanarSpace.Direction.E), out indexSE);
-
-        // TODO: below
-        if (
-            vertexWithBorderIndex > verticiesPerLineWithBorder && // Not first row
-            vertexWithBorderIndex % verticiesPerLineWithBorder > 0 // Not first column
-        ) {
-            int a = vertexWithBorderIndex - verticiesPerLineWithBorder - 1;
-            int b = vertexWithBorderIndex - verticiesPerLineWithBorder;
-            int c = vertexWithBorderIndex - 1;
-            int d = vertexWithBorderIndex;
-            resultTriangles.Add(new MeshTriangle(a, d, c));
-            resultTriangles.Add(new MeshTriangle(d, a, b));
-        }
-        return resultTriangles.ToArray();
-    }
-
-    private MeshTriangle[] SphericalGetTrianglesAtVertex(SphericalPoint vertex) {
-        List<MeshTriangle> resultTriangles = new List<MeshTriangle>();
-        // TODO
-        return resultTriangles.ToArray();
     }
 }
 
@@ -165,5 +130,9 @@ struct MeshTriangle {
         indexA = this.indexA;
         indexB = this.indexB;
         indexC = this.indexC;
+    }
+
+    public int[] ToArray() {
+        return new[] { indexA, indexB, indexC };
     }
 }
