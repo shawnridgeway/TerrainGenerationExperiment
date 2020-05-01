@@ -16,7 +16,7 @@ public class TerrainRenderer {
 
     public event Action<bool> OnRenderFinished;
 
-    public TerrainRenderer(Transform parent, ChunkedSpace space, Viewer viewer, TerrainTransform transform, Material material) {
+    public TerrainRenderer(Transform parent, ChunkedSpace space, Viewer viewer, TerrainGenerator transform, Material material) {
         this.viewer = viewer;
         this.meshGenerator = new MeshGenerator(space, transform);
         this.material = material;

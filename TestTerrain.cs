@@ -26,8 +26,8 @@ public class TestTerrain : MonoBehaviour {
         //print(new Vector3(1, 2, 3).ToString());
 
         //TerrainTransform custom = new Custom(new CustomOptions(image));
-        TerrainTransform noise = new Noise(new NoiseOptions(scale: 250, octaves: 7, persistance: .4f, seed: 19));
-        TerrainTransform scaledNoise = new Scalar(noise, new ScalarOptions(5f));
+        //TerrainGenerator noise = new Noise(new NoiseOptions(scale: 250, octaves: 7, persistance: .4f, seed: 19));
+        //TerrainGenerator scaledNoise = new Scalar(noise, new ScalarOptions(5f));
         //TerrainTransform addition = new Addition(
         //    new Constant(new ConstantOptions(0)),
         //    noise
@@ -40,7 +40,7 @@ public class TestTerrain : MonoBehaviour {
         //    new CartesianPoint(new Vector3(1,1,1)),
         //    new CartesianPoint(new Vector3(0,0,0))
         //});
-        Voronoi voronoiModel = new Voronoi(new VoronoiOptions(3, new Vector3(300, 0, 300), seed: 11));
+        //Voronoi voronoiModel = new Voronoi(new VoronoiOptions(3, new Vector3(300, 0, 300), seed: 11));
         //TerrainTransform voronoi = new VoronoiTesselation(new VoronoiTesselationOptions(new[]{
         //    new Constant(new ConstantOptions(.2f)),
         //    new Constant(new ConstantOptions(-.2f)),
@@ -71,32 +71,32 @@ public class TestTerrain : MonoBehaviour {
         //    new Samples.TectonicPlates(),
         //    new ScalarOptions(2f)
         //);
-        TerrainTransform mask = new Mask(
-            new Exaggeration(scaledNoise, new ExaggerationOptions(1.5f)),
-            new Exaggeration(scaledNoise, new ExaggerationOptions(.9f)),
-            new MaskOptions(
-                mask: new Curve(
-                    new InverseLerp(
-                        new SimpleVoronoi(
-                            new SimpleVoronoiOptions(
-                                voronoiModel,
-                                (VoronoiRegion region, Point point) => {
-                                    return region.GetDistanceToClosestBorder(point.GetPosition());
-                                }
-                            )
-                        ),
-                        new InverseLerpOptions(0, 50)
-                    ),
-                    new CurveOptions(null)
-                ),
-                0f,
-                1f
-            )
-        );
-        TerrainTransform m = new Curve(
-            scaledNoise,
-            new CurveOptions(animationCurve)
-        );
+        //TerrainGenerator mask = new Mask(
+        //    new Gain(scaledNoise, new ExaggerationOptions(1.5f)),
+        //    new Gain(scaledNoise, new ExaggerationOptions(.9f)),
+        //    new MaskOptions(
+        //        mask: new Curve(
+        //            new InverseLerp(
+        //                new SimpleVoronoi(
+        //                    new SimpleVoronoiOptions(
+        //                        voronoiModel,
+        //                        (VoronoiRegion region, Point point) => {
+        //                            return region.GetDistanceToClosestBorder(point.GetPosition());
+        //                        }
+        //                    )
+        //                ),
+        //                new InverseLerpOptions(0, 50)
+        //            ),
+        //            new CurveOptions(null)
+        //        ),
+        //        0f,
+        //        1f
+        //    )
+        //);
+        //TerrainGenerator m = new Curve(
+        //    scaledNoise,
+        //    new CurveOptions(animationCurve)
+        //);
         //TerrainTransform voro = new SimpleVoronoi(
         //    new SimpleVoronoiOptions(
         //        voronoiModel,
@@ -119,17 +119,19 @@ public class TestTerrain : MonoBehaviour {
         //}));
         //TerrainTransform testTerr = new LocalErosion(new Scalar(noise, new ScalarOptions(5f)), new LocalErosionOptions());
 
-        TerrainTransform largeNoise = new Addition(new Scalar(
-            new Noise(new NoiseOptions(scale: 800, octaves: 8, persistance: .4f, seed: 19)),
-            new ScalarOptions(10f)
-        ), new Constant(new ConstantOptions(3)));
-        TerrainTransform largeNoiseEx = new Scalar(
-            new Exaggeration(
-                largeNoise,
-                new ExaggerationOptions(2f)
-            ),
-            new ScalarOptions(25)
-        );
+        //TerrainGenerator largeNoise = new Add(new Scalar(
+        //    new Noise(new NoiseOptions(scale: 800, octaves: 8, persistance: .4f, seed: 19)),
+        //    new ScalarOptions(10f)
+        //), new Constant(new ConstantOptions(3)));
+        //TerrainGenerator largeNoiseEx = new Scalar(
+        //    new Gain(
+        //        largeNoise,
+        //        new ExaggerationOptions(2f)
+        //    ),
+        //    new ScalarOptions(25)
+        //);
+
+        TerrainGenerator terrain = new Curve(new GradientNoise(1), animationCurve) * 30f;
 
         //MeshGenerator meshGenerator = new MeshGenerator(space, largeNoiseEx);
         //MeshGenerator meshGenerator2 = new CartesianMeshGenerator(space, largeNoiseEx);
@@ -137,12 +139,12 @@ public class TestTerrain : MonoBehaviour {
         CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
         //Viewer viewer = new FalloffViewer(space, observer);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
-        terrainRenderer = new TerrainRenderer(transform, space, viewer, largeNoiseEx, material);
+        terrainRenderer = new TerrainRenderer(transform, space, viewer, terrain, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
         terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
 
-        float startPosition = largeNoiseEx.Process(space.GetPointFromPosition(Vector3.zero));
+        float startPosition = terrain.GetValue(space.GetPointFromPosition(Vector3.zero));
         SetStartPosition(startPosition);
     }
 
