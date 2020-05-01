@@ -4,7 +4,7 @@ public class ValueNoise : TerrainGenerator {
     private readonly CoherentNoise.Generator _generator;
 
     public ValueNoise(
-        int seed,
+        int seed = 0,
         bool use2D = false
     ) {
         _generator = ChooseGenerator(seed, use2D);

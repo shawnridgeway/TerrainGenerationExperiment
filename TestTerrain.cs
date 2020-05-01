@@ -131,7 +131,7 @@ public class TestTerrain : MonoBehaviour {
         //    new ScalarOptions(25)
         //);
 
-        TerrainGenerator terrain = new Curve(new GradientNoise(1), animationCurve) * 30f;
+        TerrainGenerator terrain = new BillowNoise() * 30f;
 
         //MeshGenerator meshGenerator = new MeshGenerator(space, largeNoiseEx);
         //MeshGenerator meshGenerator2 = new CartesianMeshGenerator(space, largeNoiseEx);
