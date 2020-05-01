@@ -10,8 +10,8 @@ public class Custom : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
-        int x = Mathf.RoundToInt(point.GetLocation().x);
-        int z = Mathf.RoundToInt(point.GetLocation().z);
+        int x = Mathf.RoundToInt(point.GetPosition().x);
+        int z = Mathf.RoundToInt(point.GetPosition().z);
         return options.image.GetPixel(x, z).grayscale;
     }
 

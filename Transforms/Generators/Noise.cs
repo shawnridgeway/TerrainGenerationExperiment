@@ -28,8 +28,8 @@ public class Noise : TerrainTransform {
         float amplitude = 1;
         float frequency = 1;
         for (int i = 0; i < options.octaves; i++) {
-            float sampleX = (point.GetLocation().x + octaveOffsets[i].x) / options.scale * frequency;
-            float sampleZ = (point.GetLocation().z + octaveOffsets[i].z) / options.scale * frequency;
+            float sampleX = (point.GetPosition().x + octaveOffsets[i].x) / options.scale * frequency;
+            float sampleZ = (point.GetPosition().z + octaveOffsets[i].z) / options.scale * frequency;
             float perlinValue = Mathf.PerlinNoise(sampleX, sampleZ) * 2 - 1;
             value += perlinValue * amplitude;
             amplitude *= options.persistance;

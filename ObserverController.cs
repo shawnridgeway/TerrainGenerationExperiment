@@ -3,11 +3,12 @@ using System.Collections;
 
 public class ObserverController : MonoBehaviour {
     public bool isActive = false;
-    public float speed = 6.0F;
-    public float jumpSpeed = 8.0F;
-    public float gravity = 20.0F;
+    public float speed = 6f;
+    public float jumpSpeed = 8f;
+    public float gravity = 20f;
     private Vector3 moveDirection = Vector3.zero;
     private CharacterController controller;
+    public TestTerrain world;
 
     private void Start() {
         controller = GetComponent<CharacterController>();
@@ -17,9 +18,9 @@ public class ObserverController : MonoBehaviour {
         if (!isActive) {
             return;
         }
-        transform.Rotate(0, Input.GetAxis("Horizontal") * 75 * Time.deltaTime, 0);
+        transform.Rotate(0, Input.GetAxis("Horizontal") * 100 * Time.deltaTime, 0);
         if (controller.isGrounded) {
-            moveDirection = new Vector3(0, 0, Input.GetAxis("Vertical") * 2);
+            moveDirection = new Vector3(0, 0, Input.GetAxis("Vertical"));
             moveDirection = transform.TransformDirection(moveDirection);
             moveDirection *= speed;
             if (Input.GetButton("Jump")) {
@@ -27,7 +28,8 @@ public class ObserverController : MonoBehaviour {
             }
 
         }
-        moveDirection.y -= gravity * Time.deltaTime;
+        Vector3 gravityDirection = world.GetSurfaceNormal(transform.position) * -1;
+        moveDirection += gravity * gravityDirection * Time.deltaTime;
         controller.Move(moveDirection * Time.deltaTime);
     }
 }

@@ -16,9 +16,9 @@ public class TerrainRenderer {
 
     public event Action<bool> OnRenderFinished;
 
-    public TerrainRenderer(Transform parent, Viewer viewer, MeshGenerator meshGenerator, Material material) {
+    public TerrainRenderer(Transform parent, ChunkedSpace space, Viewer viewer, TerrainTransform transform, Material material) {
         this.viewer = viewer;
-        this.meshGenerator = meshGenerator;
+        this.meshGenerator = new MeshGenerator(space, transform);
         this.material = material;
         objectCache = new TerrainObjectCache(parent);
     }
@@ -54,7 +54,7 @@ public class TerrainRenderer {
     }
 
     private void TriggerEvents(bool updateCompletelyApplied) {
-        OnRenderFinished(updateCompletelyApplied);
+        OnRenderFinished?.Invoke(updateCompletelyApplied);
     }
 
     /* ===== State Operations ===== */
@@ -262,7 +262,7 @@ class TerrainObjectCache {
     private GameObject CreateGameObject(Chunk chunk) {
         GameObject gameObject = new GameObject("Terrain Chunk");
         gameObject.SetActive(false);
-        gameObject.transform.position = chunk.GetCenterLocation();
+        gameObject.transform.position = chunk.GetCenterPosition();
         gameObject.transform.parent = parent;
         return gameObject;
     }

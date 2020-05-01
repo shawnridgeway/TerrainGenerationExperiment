@@ -80,7 +80,7 @@ public class LocalErosion : TerrainTransform {
         int[] neighborsArray = new int[countOfPointsAffected * cardinality];
         int index = 0;
         foreach (Point borderedPoint in borderedPoints) {
-            foreach (Point neighbor in borderedPoint.GetNeighbors()) {
+            foreach (Point neighbor in borderedPoint.GetNeighbors(1)) {
                 bool hasKey = pointIndexPairs.TryGetValue(neighbor, out int pointIndex);
                 neighborsArray[index++] = hasKey ? pointIndex : -1; // Use index of -1 for out of bounds
             }
@@ -156,13 +156,13 @@ public class LocalErosion : TerrainTransform {
         for (int i = 0; i < initialCount; i++) {
             Point point = points.ElementAt(i);
             // Optimization, dont get border points if all neighbors are in set
-            IEnumerable<Point> neighbors = point.GetNeighbors();
+            IEnumerable<Point> neighbors = point.GetNeighbors(1);
             bool allNeighborsInSet = true;
             foreach (Point neighbor in neighbors) {
                 allNeighborsInSet &= pointIndexPairs.ContainsKey(neighbor);
             }
             if (!allNeighborsInSet) {
-                IEnumerable<Point> borderPoints = point.GetBorderPoints(borderSize);
+                IEnumerable<Point> borderPoints = point.GetBorderPoints(borderSize, 1);
                 IncludePoints(pointIndexPairs, points, borderPoints);
             }
         }

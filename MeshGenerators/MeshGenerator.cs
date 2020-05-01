@@ -6,7 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
-public abstract class MeshGenerator {
+public class MeshGenerator {
+    private readonly MeshDataGenerator meshDataGenerator;
 
     private readonly Dictionary<(Chunk, MeshLod), Mesh> meshCache =
         new Dictionary<(Chunk, MeshLod), Mesh>();
@@ -24,6 +25,10 @@ public abstract class MeshGenerator {
 
     private readonly HashSet<Mesh> collisionsBeingProcessed =
         new HashSet<Mesh>();
+
+    public MeshGenerator(ChunkedSpace space, TerrainTransform transform) {
+        meshDataGenerator = new MeshDataGenerator(space, transform);
+    }
 
     /*
      * Get Mesh if it is created or its MeshData is ready, otherwise begin
@@ -66,7 +71,7 @@ public abstract class MeshGenerator {
             return;
         }
         meshesBeingProcessed.Add((chunk, lod));
-        MeshData meshData = await Task.Run(() => GetMeshData(chunk, lod));
+        MeshData meshData = await Task.Run(() => meshDataGenerator.GetMeshData(chunk, lod));
         meshDataCache.Add((chunk, lod), meshData);
         meshesBeingProcessed.Remove((chunk, lod));
     }
@@ -97,16 +102,4 @@ public abstract class MeshGenerator {
             normals = meshData.normals
         };
     }
-
-    /*
-     * Get the MeshData for the given chunk and lod
-     */
-    protected abstract MeshData GetMeshData(Chunk chunk, MeshLod lod);
-}
-
-public struct MeshData {
-    public Vector3[] vertices;
-    public int[] triangles;
-    public Vector2[] uvs;
-    public Vector3[] normals;
 }

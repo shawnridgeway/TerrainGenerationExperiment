@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class TerrainTransform {
-    public float Process(Point point) {
+    public virtual float Process(Point point) {
         return Evaluate(point);
     }
 

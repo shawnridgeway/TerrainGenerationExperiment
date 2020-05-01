@@ -11,7 +11,7 @@ public class RadialGradient : TerrainTransform {
     }
 
     protected override float Evaluate(Point point) {
-        Vector2 diffVector = new Vector2(point.GetLocation().x, point.GetLocation().z) - options.center;
+        Vector2 diffVector = new Vector2(point.GetPosition().x, point.GetPosition().z) - options.center;
         float linearPosition = Mathf.Sqrt(diffVector.x * diffVector.x + diffVector.y * diffVector.y);
         float scalePosition = linearPosition / options.scale;
         return options.gradientPattern.EvaluateAtInterval(scalePosition);
