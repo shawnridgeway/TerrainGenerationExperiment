@@ -5,21 +5,21 @@ public class PinkNoise : TerrainGenerator {
 
     public PinkNoise(
         int seed = 0,
-        float interval = 100f,
-        float persistance = 0.3f,
-        float frequency = 0.5f,
-        float lacunarity = 1.2f,
+        float interval = 240f,
+        float persistance = 0.5f,
+        float frequency = 1f,
+        float lacunarity = 2.17f,
         int octaveCount = 6
     ) {
-
-        CoherentNoise.Generation.Fractal.PinkNoise pinkNoise =
-            new CoherentNoise.Generation.Fractal.PinkNoise(11) {
+        _generator = new ThreadSafeGenerator(() => new CoherentNoise.Generation.Displacement.Scale(
+            new CoherentNoise.Generation.Fractal.PinkNoise(seed) {
                 Frequency = frequency,
                 Lacunarity = lacunarity,
                 OctaveCount = octaveCount,
                 Persistence = persistance
-            };
-        _generator = new CoherentNoise.Generation.Displacement.Scale(pinkNoise, Vector3.one / interval);
+            },
+            Vector3.one / interval
+        ));
     }
 
     public override CoherentNoise.Generator GetGenerator() {

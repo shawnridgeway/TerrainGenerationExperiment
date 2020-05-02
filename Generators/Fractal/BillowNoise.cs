@@ -6,20 +6,21 @@ public class BillowNoise : TerrainGenerator{
 
     public BillowNoise(
         int seed = 0,
-        float persistance = 0.4f,
-        float frequency = 4f,
-        float lacunarity = 2f
-        //int octaveCount = 2
+        float interval = 240f,
+        float persistance = 0.5f,
+        float frequency = 1f,
+        float lacunarity = 2.17f,
+        int octaveCount = 6
     ) {
-        CoherentNoise.Generation.Fractal.BillowNoise billowNoise =
-            new CoherentNoise.Generation.Fractal.BillowNoise(seed)
-            {
+        _generator = new ThreadSafeGenerator(() => new CoherentNoise.Generation.Displacement.Scale(
+            new CoherentNoise.Generation.Fractal.BillowNoise(seed) {
                 Frequency = frequency,
-                //Lacunarity = lacunarity,
-                //OctaveCount = octaveCount,
+                Lacunarity = lacunarity,
+                OctaveCount = octaveCount,
                 Persistence = persistance
-            };
-        _generator = new CoherentNoise.Generation.Displacement.Scale(billowNoise, Vector3.one / 100f);
+            },
+            Vector3.one / interval
+        ));
     }
 
     public override CoherentNoise.Generator GetGenerator() {
