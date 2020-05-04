@@ -18,7 +18,7 @@ public class TestTerrain : MonoBehaviour {
     void Start() {
         space = new PlanarSpace();
 
-        TerrainGenerator terrain = new RidgeNoise() * 30f;
+        TerrainGenerator terrain = new Samples.BrokenLands(animationCurve);
 
         CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
 

@@ -5,20 +5,21 @@ public class GradientNoise : TerrainGenerator {
 
     public GradientNoise(
         int seed = 0,
-        float interval = 100f,
+        float frequency = 1 / 100f,
+        int period = 0,
         bool use2D = false
     ) {
-        _generator = ChooseGenerator(seed, interval, use2D);
+        _generator = ChooseGenerator(seed, frequency, period, use2D);
     }
 
-    private CoherentNoise.Generator ChooseGenerator(int seed, float interval, bool use2D) {
+    private CoherentNoise.Generator ChooseGenerator(int seed, float frequency, int period, bool use2D) {
         CoherentNoise.Generator gradientNoise;
         if (use2D) {
-            gradientNoise = new CoherentNoise.Generation.GradientNoise2D(seed) { Period = 100000 };
+            gradientNoise = new SwapYZGenerator(new CoherentNoise.Generation.GradientNoise2D(seed) { Period = period });
         } else {
-            gradientNoise = new CoherentNoise.Generation.GradientNoise(seed) { Period = 100000 };
+            gradientNoise = new CoherentNoise.Generation.GradientNoise(seed) { Period = period };
         }
-        return new CoherentNoise.Generation.Displacement.Scale(gradientNoise, Vector3.one / interval);
+        return new CoherentNoise.Generation.Displacement.Scale(gradientNoise, Vector3.one * frequency);
     }
 
     public override CoherentNoise.Generator GetGenerator() {
