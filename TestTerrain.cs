@@ -9,38 +9,33 @@ public class TestTerrain : MonoBehaviour {
     TerrainRenderer terrainRenderer;
     //TerrainRenderer terrainRenderer2;
     private ChunkedSpace space;
+    private TerrainGenerator terrain;
 
     private bool initialRenderComplete = false;
     private bool previousRenderComplete = true;
     private DateTime renderBeginTime;
     private bool isDebugOn = false;
 
-    void Start() {
-        space = new PlanarSpace();
+    void Awake() {
+        space = new SphericalSpace(150, 4);
+        //space = new PlanarSpace();
 
-        TerrainGenerator terrain = new Samples.BrokenLands(animationCurve);
+        terrain = new Gain(new RidgeNoise() / 2f, 0.3f) * 50f;
+        //terrain = new Constant(10);
 
-        CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
+        //CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
 
-        //Viewer viewer = new FalloffViewer(space, observer);
+        Viewer viewer = new FixedViewer(space, observer.transform.position, 50f, new MeshLod(2));
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
         terrainRenderer = new TerrainRenderer(transform, space, viewer, terrain, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
         terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
-
-        float startPosition = terrain.GetValue(space.GetPointFromPosition(Vector3.zero));
-        SetStartPosition(startPosition);
     }
 
     void Update() {
         terrainRenderer.Render();
         //terrainRenderer2.Render();
-    }
-
-    private void SetStartPosition(float startPosition) {
-        float observerHeight = observer.transform.localScale.y;
-        observer.transform.position = new Vector3(0, startPosition + observerHeight + 2, 0);
     }
 
     private void StartGame() {
@@ -54,20 +49,26 @@ public class TestTerrain : MonoBehaviour {
             initialRenderComplete = true;
         }
 
-        if (!isDebugOn) {
-            return;
+        if (isDebugOn) {
+            if (previousRenderComplete && !updateCompletelyApplied) {
+                Debug.Log("Beginning Render...");
+                renderBeginTime = DateTime.Now;
+            }
+            if (!previousRenderComplete && updateCompletelyApplied) {
+                Debug.Log("Render Complete in " + (DateTime.Now - renderBeginTime));
+            }
+            previousRenderComplete = updateCompletelyApplied;
         }
-        if (previousRenderComplete && !updateCompletelyApplied) {
-            Debug.Log("Beginning Render...");
-            renderBeginTime = DateTime.Now;
-        }
-        if (!previousRenderComplete && updateCompletelyApplied) {
-            Debug.Log("Render Complete in " + (DateTime.Now - renderBeginTime));
-        }
-        previousRenderComplete = updateCompletelyApplied;
     }
 
     public Vector3 GetSurfaceNormal(Vector3 position) {
         return space.GetNormalFromPosition(position);
+    }
+
+    public Vector3 GetHeightAtPosition(Vector3 targetStartPosition) {
+        Point closestPoint = space.GetPointFromPosition(targetStartPosition);
+        float heightValue = terrain.GetValue(closestPoint);
+        Vector3 surfaceNormal = space.GetNormalFromPosition(targetStartPosition);
+        return closestPoint.GetPosition() + surfaceNormal * heightValue;
     }
 }

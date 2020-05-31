@@ -6,7 +6,7 @@ public class MeshDataBuilder {
     private readonly int unityMaxVertexCount = 65535;
 
     // The space that is being rendered
-    private readonly MeshHelper triangleGenerator;
+    private readonly MeshHelper meshHelper;
 
     // List of verticies included in the chunk in order (chunk only)
     private readonly Vector3[] chunkVerticies;
@@ -26,7 +26,7 @@ public class MeshDataBuilder {
     private int chunkPointsNextIndex = 0;
     private int borderPointsNextIndex = 0;
 
-    public MeshDataBuilder(Space space, int chunkPointCount, int boderPointCount, int interval, int borderSize) {
+    public MeshDataBuilder(MeshHelper meshHelper, int chunkPointCount, int boderPointCount, int interval, int borderSize) {
         if (chunkPointCount > unityMaxVertexCount) {
             throw new Exception(
                 string.Format(
@@ -36,7 +36,7 @@ public class MeshDataBuilder {
                 )
             );
         }
-        triangleGenerator = space.GetMeshHelper(interval, borderSize);
+        this.meshHelper = meshHelper;
         chunkVerticies = new Vector3[chunkPointCount];
         borderVerticies = new Vector3[boderPointCount];
         chunkUvs = new Vector2[chunkPointCount];
@@ -45,7 +45,7 @@ public class MeshDataBuilder {
     }
 
     public void AddVertex(Vector3 vertex) {
-        if (triangleGenerator.IsInChunk(chunkPointsNextIndex + borderPointsNextIndex)) {
+        if (meshHelper.IsInChunk(chunkPointsNextIndex + borderPointsNextIndex)) {
             AddChunkPoint(vertex);
         } else {
             AddBorderPoint(vertex);
@@ -54,7 +54,7 @@ public class MeshDataBuilder {
 
     public void AddChunkPoint(Vector3 vertex) {
         chunkVerticies[chunkPointsNextIndex] = vertex;
-        chunkUvs[chunkPointsNextIndex] = triangleGenerator.GetUv(chunkPointsNextIndex);
+        chunkUvs[chunkPointsNextIndex] = meshHelper.GetUv(chunkPointsNextIndex);
         AddTrianglesForPoint();
         chunkPointsNextIndex++;
     }
@@ -66,7 +66,7 @@ public class MeshDataBuilder {
     }
 
     private void AddTrianglesForPoint() {
-        (int, int, int)[] meshTriangles = triangleGenerator.GetTriangleIndiciesForPoint(chunkPointsNextIndex + borderPointsNextIndex);
+        (int, int, int)[] meshTriangles = meshHelper.GetTriangleIndiciesForPoint(chunkPointsNextIndex + borderPointsNextIndex);
         foreach ((int a, int b, int c) meshTriangle in meshTriangles) {
             if (
                 IsInChunk(meshTriangle.a) &&

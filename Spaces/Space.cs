@@ -29,7 +29,7 @@ public interface Space {
     Point GetClosestPointTo(Point origin);
     Point[] GetPointsWithin(Point origin, float distance);
     bool IsPointInRange(Point origin, Point point, float distance);
-    MeshHelper GetMeshHelper(int interval, int borderSize);
+    MeshHelper GetMeshHelper(Chunk chunk, int interval, int borderSize);
 }
 
 public interface ChunkedSpace : Space {

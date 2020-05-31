@@ -17,6 +17,10 @@ public class SphericalPoint : Point {
         return position;
     }
 
+    public Vector2 GetCoordinate() {
+        return coordinate;
+    }
+
     public float GetDistanceToPoint(Point point) {
         return space.GetDistanceBetweenPoints(this, point);
     }
@@ -31,7 +35,7 @@ public class SphericalPoint : Point {
     }
 
     public Point GetNeighbor(Enum direction, int interval = 1) {
-        float gridUnit = space.GetGridUnit();
+        float gridUnit = space.gridUnit;
         Vector2 offsetVector = Vector3.zero;
         switch (direction) {
             case SphericalSpace.Direction.E:

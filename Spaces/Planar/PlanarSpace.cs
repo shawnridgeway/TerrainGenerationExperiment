@@ -104,7 +104,7 @@ public class PlanarSpace : ChunkedSpace {
             }
             if (IsChunkInRange(origin, currentChunk, distance)) {
                 acceptedChunks.Add(currentChunk);
-                foreach (Chunk neighbor in currentChunk.GetNeighbors()) {
+                foreach (PlanarChunk neighbor in currentChunk.GetNeighbors()) {
                     unprocessedChunks.Enqueue(neighbor);
                 }
             } else {
@@ -135,7 +135,7 @@ public class PlanarSpace : ChunkedSpace {
         return new Vector3(coordinate.x, 0, coordinate.y) * scale;
     }
 
-    public MeshHelper GetMeshHelper(int interval, int borderSize) {
+    public MeshHelper GetMeshHelper(Chunk chunk, int interval, int borderSize) {
         return new PlanarMeshHelper(interval, borderSize);
     }
 

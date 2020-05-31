@@ -24,7 +24,8 @@ public class MeshDataGenerator {
         int totalPointCount = space.GetChunkCount(vertexInterval, borderSize);
         int borderPointCount = totalPointCount - chunkPointCount;
 
-        MeshDataBuilder meshDataBuilder = new MeshDataBuilder(space, chunkPointCount, borderPointCount, vertexInterval, borderSize);
+        MeshHelper meshHelper = space.GetMeshHelper(chunk, vertexInterval, borderSize);
+        MeshDataBuilder meshDataBuilder = new MeshDataBuilder(meshHelper, chunkPointCount, borderPointCount, vertexInterval, borderSize);
 
         foreach (Point point in allPoints) {
             // Get the height value for each point

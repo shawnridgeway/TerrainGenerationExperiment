@@ -71,3 +71,6 @@ Renderers are in charge of mutating the game state, creating new game objects an
 
 MeshGenerators do the actual building of meshes given a chunk and its computed values.
 
+# CoherentNoise
+
+This library uses algorithms in the [CoherentNoise](http://chaoscultgames.com/products/CN/CoherentNoiseManual.pdf) library extensively. It is an amazing library for all things noise related. 
