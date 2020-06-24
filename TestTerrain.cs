@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 public class TestTerrain : MonoBehaviour {
     public Material material;
@@ -23,9 +24,13 @@ public class TestTerrain : MonoBehaviour {
         terrain = new Gain(new RidgeNoise() / 2f, 0.3f) * 50f;
         //terrain = new Constant(10);
 
-        //CutoffViewer viewer = new CutoffViewer(space, observer, clipDistace: 1000, visibleLod: new MeshLod(2));
-
-        Viewer viewer = new FixedViewer(space, observer.transform.position, 50f, new MeshLod(2));
+        //Viewer viewer = new CutoffViewer(space, observer, 4f, new MeshLod(4));
+        SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
+        defaultLodPlanes.Add(new MeshLod(0), Mathf.PI / 12);
+        defaultLodPlanes.Add(new MeshLod(2), Mathf.PI / 6);
+        defaultLodPlanes.Add(new MeshLod(4), Mathf.PI / 2);
+        defaultLodPlanes.Add(new MeshLod(6), Mathf.PI);
+        Viewer viewer = new FalloffViewer(space, observer, defaultLodPlanes);
         //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
         terrainRenderer = new TerrainRenderer(transform, space, viewer, terrain, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);

@@ -28,7 +28,7 @@ public class CutoffViewer : Viewer {
 
     public ViewChunk[] View() {
         Point observerPoint = space.GetPointFromPosition(observer.position);
-        if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
+        if (view == null || !space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
             previousObserverPoint = observerPoint;
             view = GetVisible(observerPoint);
         }

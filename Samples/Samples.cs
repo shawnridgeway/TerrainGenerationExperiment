@@ -89,6 +89,19 @@ public class Samples {
          */
     }
 
+    public class FuzzyBorders : TerrainGenerator {
+        private readonly CoherentNoise.Generator _generator;
+
+        public FuzzyBorders() {
+            TerrainGenerator ridgeNoise = new RidgeNoise(seed: 23, frequency: 1 / 3000f, octaveCount: 11) * 10;
+            _generator = ridgeNoise.GetGenerator();
+        }
+
+        public override CoherentNoise.Generator GetGenerator() {
+            return _generator;
+        }
+    }
+
     //    public class SimpleVolcano : TerrainGenerator {
     //        private readonly TerrainGenerator transform;
 
@@ -247,4 +260,4 @@ public class Samples {
     //            return transform.GetValue(point);
     //        }
     //    }
-}
+    }

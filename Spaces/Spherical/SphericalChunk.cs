@@ -142,7 +142,7 @@ public class SphericalChunk : Chunk {
             int colIndexInQuadrantStart = IsChunkInSouthernHemisphere()
                 ? isFlatSideUp
                     ? (GetChunkColIndex() / 2) * edgePointCountInChunk
-                    : ((GetChunkColIndex() + 1) / 2) * edgePointCountInChunk - rowIndex - borderSize + interval - 1
+                    : ((GetChunkColIndex() + 1) / 2) * edgePointCountInChunk - rowIndex - borderSize + 3 // Add 3 for the point
                 : isFlatSideUp
                     ? ((GetChunkColIndex() - 1) / 2) * edgePointCountInChunk + rowIndex - borderSize
                     : (GetChunkColIndex() / 2) * edgePointCountInChunk;

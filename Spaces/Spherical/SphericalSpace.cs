@@ -38,7 +38,7 @@ public class SphericalSpace : ChunkedSpace {
     public readonly float chunkUnit; // Length of an edge of a chunk (in Coordinates along axises only)
     public readonly int divisions;
 
-    private readonly float scale = 1; // Distance between Positions, essentially radius
+    private readonly float scale; // Distance between Positions, essentially radius
 
     public SphericalSpace(float scale = 1, int divisions = 1) {
         this.scale = scale;
@@ -53,12 +53,12 @@ public class SphericalSpace : ChunkedSpace {
 
     // How wide across a chunk is in terms of Position
     public float GetChunkScale() {
-        return chunkUnit * scale;
+        return chunkUnit;
     }
 
     public Point GetPointFromPosition(Vector3 position) {
         position = position.normalized;
-        float longitude = Mathf.Atan2(position.x, position.z);
+        float longitude = Mathf.Atan2(position.z, position.x);
         float latitude = Mathf.Asin(position.y);
         return new SphericalPoint(new Vector2(latitude, longitude), this);
     }
@@ -79,8 +79,12 @@ public class SphericalSpace : ChunkedSpace {
         throw new NotImplementedException();
     }
 
-    public bool IsPointInRange(Point origin, Point point, float distance) {
-        throw new NotImplementedException();
+    public bool IsPointInRange(Point origin, Point point, float distanceThreshold) {
+        if (origin is SphericalPoint sphericalPointOrigin && point is SphericalPoint sphericalPoint) {
+            float angleDistance = GetAngleDistanceBetweenCoordinates(sphericalPointOrigin.GetCoordinate(), sphericalPoint.GetCoordinate());
+            return angleDistance < distanceThreshold + chunkUnit;
+        }
+        return false;
     }
 
     public Chunk GetClosestChunkTo(Point origin) {
@@ -120,9 +124,6 @@ public class SphericalSpace : ChunkedSpace {
 
     public Chunk[] GetChunksWithin(Point origin, float distance) {
         Chunk closestChunk = GetClosestChunkTo(origin);
-        if (closestChunk is SphericalChunk sc) {
-            Debug.Log(string.Format("closestChunk {0}", sc.GetCenterCoordinate()));
-        }
         HashSet<Chunk> acceptedChunks = new HashSet<Chunk>();
         HashSet<Chunk> rejectedChunks = new HashSet<Chunk>();
         Queue<Chunk> unprocessedChunks = new Queue<Chunk>();
@@ -146,9 +147,21 @@ public class SphericalSpace : ChunkedSpace {
         return chunksInRange;
     }
 
-    public bool IsChunkInRange(Point origin, Chunk chunk, float distance) {
-        // TODO
-        return true;
+    public bool IsChunkInRange(Point origin, Chunk chunk, float distanceThreshold) {
+        if (origin is SphericalPoint sphericalPoint && chunk is SphericalChunk sphericalChunk) {
+            float angleDistance = GetAngleDistanceBetweenCoordinates(sphericalPoint.GetCoordinate(), sphericalChunk.GetCenterCoordinate());
+            return angleDistance < distanceThreshold + chunkUnit;
+        }
+        return false;
+    }
+
+    public float GetAngleDistanceBetweenCoordinates(Vector2 a, Vector2 b) {
+        float latitudeDifference = b.x - a.x;
+        float longitudeDifference = b.y - a.y;
+        float x = Mathf.Sin(latitudeDifference / 2) * Mathf.Sin(latitudeDifference / 2) +
+            Mathf.Cos(a.x) * Mathf.Cos(b.x) *
+            Mathf.Sin(longitudeDifference / 2) * Mathf.Sin(longitudeDifference / 2);
+        return 2f * Mathf.Atan2(Mathf.Sqrt(x), Mathf.Sqrt(1f - x));
     }
 
     public float DistanceFromCenter(Vector3 position) {
@@ -174,9 +187,6 @@ public class SphericalSpace : ChunkedSpace {
     }
 
     public Vector3 GetPositionFromCoordinate(Vector2 coordinate) {
-        //Vector3 origin = new Vector3(0, 0, 1);
-        //Quaternion rotation = Quaternion.Euler(coordinate.x * Mathf.Rad2Deg, coordinate.y * Mathf.Rad2Deg, 0);
-        //return rotation * origin;
         return new Vector3(
             scale * Mathf.Cos(coordinate.x) * Mathf.Cos(coordinate.y),
             scale * Mathf.Sin(coordinate.x),

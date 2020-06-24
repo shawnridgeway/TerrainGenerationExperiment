@@ -75,9 +75,9 @@ public class PlanarSpace : ChunkedSpace {
     }
 
     // Check if the two points are within the given distance along this space
-    public bool IsPointInRange(Point origin, Point target, float distance) {
+    public bool IsPointInRange(Point origin, Point target, float distanceThreshold) {
         return Vector3.SqrMagnitude(target.GetPosition() - origin.GetPosition())
-            < distance * distance;
+            < distanceThreshold * distanceThreshold;
     }
 
     // Get the closest Chunk to the given origin
@@ -117,7 +117,7 @@ public class PlanarSpace : ChunkedSpace {
     }
 
     // Check if a Chunk is within the given distance of a Point along this space
-    public bool IsChunkInRange(Point origin, Chunk chunk, float distance) {
+    public bool IsChunkInRange(Point origin, Chunk chunk, float distanceThreshold) {
         float chunkScale = GetChunkScale();
         Bounds bounds = new Bounds(
             chunk.GetCenterPosition(),
@@ -128,7 +128,7 @@ public class PlanarSpace : ChunkedSpace {
             )
         );
         return bounds.SqrDistance(origin.GetPosition())
-            < distance * distance;
+            < distanceThreshold * distanceThreshold;
     }
 
     public Vector3 GetPositionFromCoordinate(Vector2 coordinate) {

@@ -26,7 +26,7 @@ public class FalloffViewer : Viewer {
 
     public ViewChunk[] View() {
         Point observerPoint = space.GetPointFromPosition(observer.position);
-        if (view == null || space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
+        if (view == null || !space.IsPointInRange(observerPoint, previousObserverPoint, updateDistace)) {
             previousObserverPoint = observerPoint;
             view = GetVisible(observerPoint);
         }
@@ -64,16 +64,16 @@ public class FalloffViewer : Viewer {
 
     private SortedList<MeshLod, float> GetDefaultVisibilityLodPlanes() {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
-        defaultLodPlanes.Add(new MeshLod(0), 30);
-        defaultLodPlanes.Add(new MeshLod(2), 100);
-        defaultLodPlanes.Add(new MeshLod(4), 200);
-        defaultLodPlanes.Add(new MeshLod(6), 300);
+        defaultLodPlanes.Add(new MeshLod(0), 30f);
+        defaultLodPlanes.Add(new MeshLod(2), 100f);
+        defaultLodPlanes.Add(new MeshLod(4), 200f);
+        defaultLodPlanes.Add(new MeshLod(6), 300f);
         return defaultLodPlanes;
     }
 
     private SortedList<MeshLod, float> GetDefaultCollisionLodPlanes() {
         SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
-        defaultLodPlanes.Add(new MeshLod(3), 30);
+        defaultLodPlanes.Add(new MeshLod(3), 30f);
         return defaultLodPlanes;
     }
 }
