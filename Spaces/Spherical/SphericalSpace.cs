@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -40,7 +39,7 @@ public class SphericalSpace : ChunkedSpace {
 
     private readonly float scale; // Distance between Positions, essentially radius
 
-    public SphericalSpace(float scale = 1, int divisions = 1) {
+    public SphericalSpace(float scale = 10f, int divisions = 1) {
         this.scale = scale;
         this.divisions = divisions;
         chunkUnit = Mathf.PI / (2 * divisions);
@@ -53,7 +52,7 @@ public class SphericalSpace : ChunkedSpace {
 
     // How wide across a chunk is in terms of Position
     public float GetChunkScale() {
-        return chunkUnit;
+        return chunkUnit * scale;
     }
 
     public Point GetPointFromPosition(Vector3 position) {
@@ -71,6 +70,10 @@ public class SphericalSpace : ChunkedSpace {
         throw new NotImplementedException();
     }
 
+    public float GetDistanceFromSurface(Vector3 position) {
+        return Mathf.Abs(DistanceFromCenter(position) - scale);
+    }
+
     public Point GetClosestPointTo(Point origin) {
         throw new NotImplementedException();
     }
@@ -82,7 +85,7 @@ public class SphericalSpace : ChunkedSpace {
     public bool IsPointInRange(Point origin, Point point, float distanceThreshold) {
         if (origin is SphericalPoint sphericalPointOrigin && point is SphericalPoint sphericalPoint) {
             float angleDistance = GetAngleDistanceBetweenCoordinates(sphericalPointOrigin.GetCoordinate(), sphericalPoint.GetCoordinate());
-            return angleDistance < distanceThreshold + chunkUnit;
+            return angleDistance * scale < distanceThreshold;
         }
         return false;
     }
@@ -150,7 +153,7 @@ public class SphericalSpace : ChunkedSpace {
     public bool IsChunkInRange(Point origin, Chunk chunk, float distanceThreshold) {
         if (origin is SphericalPoint sphericalPoint && chunk is SphericalChunk sphericalChunk) {
             float angleDistance = GetAngleDistanceBetweenCoordinates(sphericalPoint.GetCoordinate(), sphericalChunk.GetCenterCoordinate());
-            return angleDistance < distanceThreshold + chunkUnit;
+            return (angleDistance - chunkUnit) * scale < distanceThreshold;
         }
         return false;
     }
@@ -215,9 +218,6 @@ public class SphericalSpace : ChunkedSpace {
     // Get the chunk unit length for the longitude given the latitude
     public float GetLongitudeChunkUnitFromLatitude(float latitude) {
         float chunkRowIndex = Mathf.Round(((Mathf.PI / 2f) - Mathf.Abs(latitude) - (chunkUnit / 2f)) / chunkUnit);
-        //if (chunkRowIndex == 0) {
-        //    Debug.Log(string.Format("should be 1.57 {0}", (Mathf.PI / 2f) / (2f * chunkRowIndex + 1f)));
-        //}
         return (Mathf.PI / 2f) / (2f * chunkRowIndex + 1f);
     }
 }

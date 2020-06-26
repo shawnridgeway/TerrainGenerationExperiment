@@ -84,49 +84,16 @@ public class SphericalChunk : Chunk {
 
     public IEnumerable<Point> GetPoints(int interval, int borderSize) {
         bool isFlatSideUp = IsChunkInverted();
-        // Is the chunk inverted considering the hemisphere it is in?
-        //bool isInvertedForHemisphere = isInverted && centerCoordinate.x > 0 || !isInverted && centerCoordinate.x < 0;
-
-        // Strategy
-        // 1 Get the latitude start
-        // 2 Get the latitude step
-        // For each row:
-        //   1 Get longitude count from begining of octant
-        //   2 Get longitude unit for row
-
         int edgePointCountInChunk = SphericalSpace.chunkWidth / interval;
         int edgePointCount = edgePointCountInChunk + borderSize * 3;
 
         // A border adds 1x rows on the flat side, and 2x rows on the pointy end
         int borderStartOffset = isFlatSideUp ? borderSize : borderSize * 2;
-        //int borderEndOffset = isInverted ? borderSize * 2 : borderSize;
         float latitudeUnit = interval * space.gridUnit;
         float inChunkLatitudeStart = GetChunkTopLatitude();
-        //float inChunkLatitudeEnd = GetChunkTopLatitude() - space.chunkUnit;
         float latitudeStart = inChunkLatitudeStart + borderStartOffset * latitudeUnit;
-        //float latitudeEnd = inChunkLatitudeEnd - borderEndOffset * latitudeUnit;
 
         float chunkQuadrantLongitudeStart = GetChunkQuadrantLongitudeStart();
-
-        //float inChunkLongitudeStart = isInverted
-        //    ? Mathf.Ceil(GetChunkColIndex() / 2) * space.GetLongitudeGridUnitFromLatitude(inChunkLatitudeStart) * SphericalSpace.chunkWidth // flat left top
-        //    : Mathf.Ceil(GetChunkColIndex() / 2) * space.GetLongitudeGridUnitFromLatitude(inChunkLatitudeStart) * SphericalSpace.chunkWidth; // pointy top
-
-        //float inChunkLongitudeEnd = isInverted
-        //    ? (Mathf.Floor((GetChunkColIndex() - 1) / 2) + 1) * space.GetLongitudeGridUnitFromLatitude(inChunkLatitudeEnd) * SphericalSpace.chunkWidth // pointy bottom
-        //    : Mathf.Ceil(GetChunkColIndex() / 2) * space.GetLongitudeGridUnitFromLatitude(inChunkLatitudeEnd) * SphericalSpace.chunkWidth; // flat left bottom
-
-        //float pointyCornerLongitudeInChunk = isInverted
-        //    ? (GetChunkRowIndex() / 2) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeEnd)
-        //    : (GetChunkRowIndex() / 2) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeStart);
-        //float flatLeftCornerLongitudeInChunk = isInverted
-        //    ? Mathf.Ceil(GetChunkRowIndex() / 2) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeStart)
-        //    : Mathf.Ceil(GetChunkRowIndex() / 2) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeEnd);
-        //float flatRightCornerLongitudeInChunk = isInverted
-        //    ? (Mathf.Floor(GetChunkRowIndex() / 2) + 1) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeStart)
-        //    : (Mathf.Floor(GetChunkRowIndex() / 2) + 1) * GetChunkLongitudalWidthAtLatitude(inChunkLatitudeEnd);
-
-        //float longitudeStartOffsetPerRow = (inChunkLongitudeEnd - inChunkLongitudeStart) / edgePointCountInChunk;
 
         // Iterate through latitude, top to bottom
         for (int rowIndex = 0; rowIndex <= edgePointCount; rowIndex++) {
@@ -137,8 +104,6 @@ public class SphericalChunk : Chunk {
                 : rowIndex;
 
             float longitudeUnit = interval * space.GetLongitudeGridUnitFromLatitude(latitude);
-            //float rowWidth = colsInRow * longitudeUnit;
-            //float longitudeStart = centerCoordinate.y - rowWidth / 2f;
             int colIndexInQuadrantStart = IsChunkInSouthernHemisphere()
                 ? isFlatSideUp
                     ? (GetChunkColIndex() / 2) * edgePointCountInChunk
@@ -225,24 +190,7 @@ public class SphericalChunk : Chunk {
                 return null;
         }
     }
-
-    //private Vector3 CorrectCrossMeridianNeighbor(Vector3 proposedNeighbor, float longitudeStep) {
-    //    // When crossing into a new quadrant, keep the move a full longitude unit
-    //    if (proposedNeighbor.y % (Mathf.PI / 2f) == 0) {
-    //        Debug.Log("GGGGGG=====");
-    //        return new Vector3(proposedNeighbor.x, proposedNeighbor.y + longitudeStep);
-    //    }
-    //    return proposedNeighbor;
-    //}
-
-    //private Vector3 CorrectCrossEquitorialNeighbor(Vector3 proposedNeighbor) {
-    //    // When crossing the equator, keep the latitude the same
-    //    if (Mathf.Sign(centerCoordinate.x) != Mathf.Sign(proposedNeighbor.x)) {
-    //        return new Vector3(proposedNeighbor.x, centerCoordinate.y);
-    //    }
-    //    return proposedNeighbor;
-    //}
-
+    
     public bool IsPositionInChunk(Vector3 position) {
         Point point = space.GetPointFromPosition(position);
         return space.IsChunkInRange(point, this, 0);

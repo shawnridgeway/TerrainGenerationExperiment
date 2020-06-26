@@ -18,21 +18,21 @@ public class TestTerrain : MonoBehaviour {
     private bool isDebugOn = false;
 
     void Awake() {
-        space = new SphericalSpace(150, 4);
+        space = new SphericalSpace(150f, 4);
         //space = new PlanarSpace();
 
         terrain = new Gain(new RidgeNoise() / 2f, 0.3f) * 50f;
         //terrain = new Constant(10);
 
         //Viewer viewer = new CutoffViewer(space, observer, 4f, new MeshLod(4));
-        SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
-        defaultLodPlanes.Add(new MeshLod(0), Mathf.PI / 12);
-        defaultLodPlanes.Add(new MeshLod(2), Mathf.PI / 6);
-        defaultLodPlanes.Add(new MeshLod(4), Mathf.PI / 2);
-        defaultLodPlanes.Add(new MeshLod(6), Mathf.PI);
-        Viewer viewer = new FalloffViewer(space, observer, defaultLodPlanes);
-        //ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
-        terrainRenderer = new TerrainRenderer(transform, space, viewer, terrain, material);
+        //SortedList<MeshLod, float> defaultLodPlanes = new SortedList<MeshLod, float>();
+        //defaultLodPlanes.Add(new MeshLod(0), Mathf.PI / 12);
+        //defaultLodPlanes.Add(new MeshLod(2), Mathf.PI / 6);
+        //defaultLodPlanes.Add(new MeshLod(4), Mathf.PI / 2);
+        //defaultLodPlanes.Add(new MeshLod(6), Mathf.PI);
+        //Viewer viewer = new FalloffViewer(space, observer, defaultLodPlanes);
+        ZoomLevelViewer zoomViewer = new ZoomLevelViewer(space, observer);
+        terrainRenderer = new TerrainRenderer(transform, space, zoomViewer, terrain, material);
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
         terrainRenderer.OnRenderFinished += HandleRenderComplete;
         //terrainRenderer2 = new TerrainRenderer(transform, viewer, meshGenerator2, material);
@@ -68,6 +68,10 @@ public class TestTerrain : MonoBehaviour {
 
     public Vector3 GetSurfaceNormal(Vector3 position) {
         return space.GetNormalFromPosition(position);
+    }
+
+    public float GetDistanceFromSurface(Vector3 position) {
+        return space.GetDistanceFromSurface(position);
     }
 
     public Vector3 GetHeightAtPosition(Vector3 targetStartPosition) {

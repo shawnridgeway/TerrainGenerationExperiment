@@ -29,7 +29,7 @@ public class PlanarSpace : ChunkedSpace {
 
     private readonly float scale; // Distance between Positions
 
-    public PlanarSpace(float scale = 1) {
+    public PlanarSpace(float scale = 1f) {
         this.scale = scale;
     }
 
@@ -58,6 +58,10 @@ public class PlanarSpace : ChunkedSpace {
     // Get the distance between two points along the space
     public float GetDistanceBetweenPoints(Point a, Point b) {
         return Vector3.Distance(a.GetPosition(), b.GetPosition());
+    }
+
+    public float GetDistanceFromSurface(Vector3 position) {
+        return Mathf.Abs(position.y);
     }
 
     // Get the closest Point that falls on the grind in this space

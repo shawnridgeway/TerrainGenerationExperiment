@@ -26,6 +26,7 @@ public interface Space {
     Point GetPointFromPosition(Vector3 position);
     Vector3 GetNormalFromPosition(Vector3 position);
     float GetDistanceBetweenPoints(Point a, Point b);
+    float GetDistanceFromSurface(Vector3 position);
     Point GetClosestPointTo(Point origin);
     Point[] GetPointsWithin(Point origin, float distance);
     bool IsPointInRange(Point origin, Point point, float distanceThreshold);

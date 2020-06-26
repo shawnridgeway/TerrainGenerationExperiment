@@ -5,13 +5,15 @@ public class ObserverController : MonoBehaviour {
     public bool isActive = false;
     public bool isGrounded = false;
     public float moveSpeed = 6f;
-    public float jumpHeight = 8f;
+    public float jumpHeight = 0.001f;
     public float gravity = 20f;
     public float maxVelocityChange = 50f;
     public TestTerrain world;
+    public bool jetPackMode = false;
 
     private Collider collider;
     private Rigidbody rigidbody;
+    private Camera camera;
 
     void Awake() {
         SetStartPosition();
@@ -19,6 +21,7 @@ public class ObserverController : MonoBehaviour {
         rigidbody.freezeRotation = true;
         rigidbody.useGravity = false;
         collider = GetComponent<Collider>();
+        camera = GetComponentInChildren<Camera>();
     }
 
     void FixedUpdate() {
@@ -34,8 +37,7 @@ public class ObserverController : MonoBehaviour {
         // Player turn controls
         transform.Rotate(0, Input.GetAxis("Horizontal") * 100 * Time.deltaTime, 0, UnityEngine.Space.Self);
 
-        if (isGrounded) {
-
+        if (isGrounded || jetPackMode) {
             // Player move controls
             Vector3 targetVelocity = new Vector3(0, 0, Input.GetAxis("Vertical"));
             targetVelocity = transform.TransformDirection(targetVelocity);
@@ -46,18 +48,26 @@ public class ObserverController : MonoBehaviour {
             velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
             velocityChange.y = Mathf.Clamp(velocityChange.y, -maxVelocityChange, maxVelocityChange);
             velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-            rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
-
             // Player jump controls
             if (Input.GetButton("Jump")) {
-                rigidbody.velocity += transform.TransformDirection(new Vector3(0, CalculateJumpVerticalSpeed(), 0));
+                velocityChange += transform.TransformDirection(new Vector3(0, CalculateJumpVerticalSpeed(), 0));
             }
+            rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
+            
+
         }
 
         // We apply gravity manually for more tuning control
         rigidbody.AddForce(gravity * rigidbody.mass * -surfaceNormal * Time.deltaTime);
 
         isGrounded = false;
+
+        // Camera controls
+        float altitudeRatio = (world.GetDistanceFromSurface(transform.position) - 20f) / 100f;
+        Vector3 newRotation = camera.transform.localRotation.eulerAngles;
+        newRotation.x = Mathf.Lerp(15f, 90f, Mathf.Clamp(altitudeRatio, 0f, 1f));
+        camera.transform.localRotation = Quaternion.Euler(newRotation);
+        camera.transform.localPosition = new Vector3(camera.transform.localPosition.x, camera.transform.localPosition.y, Mathf.Lerp(-20f, 0f, altitudeRatio));
     }
 
     void OnCollisionStay() {
@@ -73,6 +83,6 @@ public class ObserverController : MonoBehaviour {
     // From the jump height and gravity we deduce the upwards speed 
     // for the character to reach at the apex.
     float CalculateJumpVerticalSpeed() {
-        return Mathf.Sqrt(2 * jumpHeight * gravity);
+        return Mathf.Sqrt(2 * jumpHeight * gravity * (jetPackMode ? 0.05f : 1f));
     }
 }
